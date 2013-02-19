@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+	<string id="30901">General Settings</string>
+	<string id="30902">Username</string>
+	<string id="30903">Password</string>
+	<string id="30904">Marked as watched from</string>
+
+	<string id="30911">connected</string>
+	<string id="30912">Authentification failed</string>
+
+	<string id="30923">not found.</string>
+	<string id="30924">marked as watched.</string>
+	<string id="30925">added.</string>
+	<string id="30926">can not be added.</string>
+	<string id="30927">unable to retrieve your show lists.</string>
+</strings>
