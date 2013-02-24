@@ -1,2 +1,5 @@
+1.0.1
++ Add Italian and Portuguese (Brazil) language, thanks
+to Julia Vidile <julia.vidile@gmail.com>
 1.0.0
 * initial Frodo commit

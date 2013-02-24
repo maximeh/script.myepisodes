@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+	<string id="30901">Configurações</string>
+	<string id="30902">Usuário</string>
+	<string id="30903">Senha</string>
+	<string id="30904">Marcar como visto desde</string>
+
+	<string id="30911">conectado</string>
+	<string id="30912">Erro de autenticação</string>
+
+	<string id="30923">não encontrado.</string>
+	<string id="30924">marcado como visto.</string>
+	<string id="30925">adicionado.</string>
+	<string id="30926">impossível adicionar.</string>
+	<string id="30927">impossível restabelecer listas de programas.</string>
+</strings>
