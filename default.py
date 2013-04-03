@@ -25,6 +25,8 @@ class Player(xbmc.Player):
         xbmc.Player.__init__(self)
         log('Player - init')
         self.mye = self._loginMyEpisodes()
+        if self.mye is None:
+            return None
         self.showid = self.episode = self.title = self.season = None
         self._totalTime = 999999
         self._lastPos = 0
@@ -57,9 +59,13 @@ class Player(xbmc.Player):
     def _loginMyEpisodes(self):
         username = __addon__.getSetting('Username')
         password = __addon__.getSetting('Password')
-        mye = MyEpisodes(username, password)
 
         login_notif = __language__(30912)
+        if username is None or password is None:
+            notif(login_notif, time=2500)
+            return None
+
+        mye = MyEpisodes(username, password)
         if mye.login():
             login_notif = "%s %s" % (username, __language__(30911))
         notif(login_notif, time=2500)
@@ -131,6 +137,9 @@ def log(msg):
 
 if ( __name__ == "__main__" ):
     player = Player()
+    if player is None:
+        sys.exit(0)
+
     log( "[%s] - Version: %s Started" % (__scriptname__, __version__))
 
     while not xbmc.abortRequested:
