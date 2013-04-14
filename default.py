@@ -68,7 +68,6 @@ class Player(xbmc.Player):
         mye = MyEpisodes(username, password)
         if mye.login():
             login_notif = "%s %s" % (username, __language__(30911))
-            mye = None
         notif(login_notif, time=2500)
 
         if (mye is not None) and (not mye.get_show_list()):
