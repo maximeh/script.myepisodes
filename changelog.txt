@@ -1,3 +1,5 @@
+1.0.2
++ Add Spanish (Thanks to stravieso)
 1.0.1
 + Add Italian and Portuguese (Brazil) language, thanks
 to Julia Vidile <julia.vidile@gmail.com>
