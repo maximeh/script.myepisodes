@@ -94,6 +94,7 @@ class Player(xbmc.Player):
         self._tracker.start()
 
         self.title, self.season, self.episode = self.mye.get_info(self.title)
+        log("Title: %s - Season: %02d - Ep: %02d" % (self.title, self.season, self.episode))
         if (self.season is None) and (self.episode is None):
             # It's not a show. If it should be recognised as one. Send a bug.
             self._tearDown()

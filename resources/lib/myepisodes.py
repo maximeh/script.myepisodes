@@ -104,20 +104,22 @@ class MyEpisodes(object):
 
         show_url = urlparse.urlparse(show_href)
         params = urlparse.parse_qs(show_url.query)
-        if 'showid' in params:
-            return int(params['showid'][0].strip())
-        return None
+        if 'showid' not in params:
+            return None
+        return int(params['showid'][0].strip())
 
     # This is totally stolen from script.xbmc.subtitles plugin !
     def get_info(self, file_name):
         for regex in REGEX_EXPRESSIONS:
             response_file = re.findall(regex, file_name)
-            if len(response_file) > 0 :
-                title = re.split(regex, file_name)[0]
-                for char in ['[', ']', '_', '(', ')', '.', '-']:
-                    title = title.replace(char, ' ')
-                title = title.strip()
-                return title, int(response_file[0][0]), int(response_file[0][1])
+            if len(response_file) < 0 :
+                continue
+            title = re.split(regex, file_name)[0]
+            for char in ['[', ']', '_', '(', ')', '.', '-']:
+                title = title.replace(char, ' ')
+            title = title.strip()
+            return title, int(response_file[0][0]), int(response_file[0][1])
+        return None
 
     def add_show(self, show_id):
         # Try to add the show to your account.
