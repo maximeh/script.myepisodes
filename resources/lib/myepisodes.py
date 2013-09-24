@@ -22,7 +22,7 @@ REGEX_EXPRESSIONS = [
     '[\\\\/\\._ \\[\\(-]([0-9]+)x([0-9]+)([^\\\\/]*)$'
     ]
 
-MYEPISODE_URL = "http://myepisodes.com"
+MYEPISODE_URL = "http://www.myepisodes.com"
 
 class MyEpisodes(object):
 
