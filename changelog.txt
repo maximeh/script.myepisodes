@@ -1,3 +1,5 @@
+1.0.4
++ Fix impossibility to login
 1.0.3
 + Update to new language system
 1.0.2
