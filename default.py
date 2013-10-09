@@ -60,7 +60,7 @@ class Player(xbmc.Player):
         password = __addon__.getSetting('Password')
 
         login_notif = __language__(30912)
-        if username is None or password is None:
+        if username is "" or password is "":
             notif(login_notif, time=2500)
             return None
 
