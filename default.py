@@ -34,7 +34,7 @@ class Player(xbmc.Player):
         self._playbackLock = threading.Event()
 
     def _trackPosition(self):
-        while self._playbackLock.isSet():
+        while self._playbackLock.isSet() and not xbmc.abortRequested:
             try:
                 self._lastPos = self.getTime()
             except:
