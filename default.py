@@ -16,8 +16,7 @@ __language__      = __addon__.getLocalizedString
 __resource_path__ = os.path.join(__cwd__, 'resources', 'lib')
 __resource__      = xbmc.translatePath(__resource_path__).decode('utf-8')
 
-sys.path.append (__resource__)
-from myepisodes import MyEpisodes
+from resources.lib.myepisodes import MyEpisodes
 
 class Player(xbmc.Player):
 
