@@ -4,7 +4,7 @@
        version="1.0.4"
        provider-name="Maxime Hadjinlian">
   <requires>
-    <import addon="xbmc.python" version="2.0"/>
+    <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.beautifulsoup" version="3.0.8"/>
   </requires>
   <extension point="xbmc.service" library="default.py" start="login"/>
@@ -12,6 +12,11 @@
     <summary lang="en">MyEpisodes</summary>
     <description lang="en">Automatically set watched episodes on MyEpisodes.com</description>
     <platform>all</platform>
+    <language>en fr it pt</language>
+    <forum></forum>
+    <website></website>
+    <source>https://github.com/maximeh/script.myepisodes</source>
+    <email>maxime dot hadjinlian at gmail dot com</email>
   </extension>
 </addon>
 
