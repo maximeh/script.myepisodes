@@ -18,6 +18,15 @@ __resource__      = xbmc.translatePath(__resource_path__).decode('utf-8')
 
 from resources.lib.myepisodes import MyEpisodes
 
+class MyMonitor(xbmc.Monitor):
+    def __init__( self, *args, **kwargs ):
+        xbmc.Monitor.__init__( self )
+        self.action = kwargs['action']
+
+    def onSettingsChanged( self ):
+        log('#DEBUG# onSettingsChanged')
+        self.action()
+
 class Player(xbmc.Player):
 
     def __init__ (self):
@@ -32,6 +41,13 @@ class Player(xbmc.Player):
         self._min_percent = int(__addon__.getSetting('watched-percent'))
         self._tracker = None
         self._playbackLock = threading.Event()
+        self.Monitor = MyMonitor(action = self._reset)
+
+    def _reset(self):
+        self._tearDown()
+        if self.mye:
+            del self.mye
+        self.__init__()
 
     def _trackPosition(self):
         while self._playbackLock.isSet() and not xbmc.abortRequested:
