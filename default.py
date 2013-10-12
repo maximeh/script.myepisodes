@@ -148,10 +148,11 @@ class Player(xbmc.Player):
 
 def notif(msg, time=5000):
     notif_msg = "%s, %s, %i, %s" % ('MyEpisodes', msg, time, __icon__)
-    xbmc.executebuiltin("XBMC.Notification(%s)" % notif_msg)
+    xbmc.executebuiltin("XBMC.Notification(%s)" % notif_msg.encode('utf-8'))
 
 def log(msg):
-    xbmc.log("### [%s] - %s" % (__scriptname__, msg, ), level=xbmc.LOGDEBUG)
+    xbmc.log("### [%s] - %s" % (__scriptname__, msg.encode('utf-8'), ),
+            level=xbmc.LOGDEBUG)
 
 if ( __name__ == "__main__" ):
     player = Player()
