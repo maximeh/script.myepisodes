@@ -64,9 +64,11 @@ class Player(xbmc.Player):
         self._tracker = threading.Thread(target=self._trackPosition)
 
     def _tearDown(self):
-        if self._playbackLock:
+        if hasattr(self, '_playbackLock'):
             self._playbackLock.clear()
         self._monitor = None
+        if not hasattr(self, '_tracker'):
+            return
         if self._tracker is None:
             return
         if self._tracker.isAlive():
