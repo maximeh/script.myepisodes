@@ -78,14 +78,7 @@ class MyEpisodes(object):
             self.shows.append(int(showid))
         return True
 
-    def find_show_id(self, show_name):
-        # find a show through its name and report its id
-        search_data = urllib.urlencode({
-            'tvshow' : show_name,
-            'action' : 'Search myepisodes.com',
-            })
-        search_url = "%s/%s" % (MYEPISODE_URL, "search.php")
-        data = self.send_req(search_url, search_data)
+    def find_show_link(self, data, show_name, strict=False):
         if data is None:
             return None
         soup = BeautifulSoup(data)
@@ -94,22 +87,32 @@ class MyEpisodes(object):
         for link in soup.findAll("a", href=True):
             if link.string is None:
                 continue
-            if link.string.lower().startswith(show_name):
-                show_href = link.get('href')
-                break
+            if strict:
+                if link.string.lower() == show_name:
+                    show_href = link.get('href')
+                    break
+            else:
+                if link.string.lower().startswith(show_name):
+                    show_href = link.get('href')
+                    break
+        return show_href
+
+    def find_show_id(self, show_name):
+        # find a show through its name and report its id
+        search_data = urllib.urlencode({
+            'tvshow' : show_name,
+            'action' : 'Search myepisodes.com',
+            })
+        search_url = "%s/%s" % (MYEPISODE_URL, "search.php")
+        data = self.send_req(search_url, search_data)
+        show_href = self.find_show_link(data, show_name)
 
         if show_href is None:
             # Try to lookup the list of all the shows to find the exact title
             list_url = "%s/%s?list=%s" % (MYEPISODE_URL, "shows.php",
                     show_name[0].upper())
             data = self.send_req(list_url)
-            soup = BeautifulSoup(data)
-            show_href = None
-            for link in soup.findAll("a", href=True):
-                if link.string is None:
-                    continue
-                if link.string.lower() == show_name:
-                    show_href = link.get('href')
+            show_href = self.find_show_link(data, show_name, strict=True)
 
         # Really did not find anything :'(
         if show_href is None:
