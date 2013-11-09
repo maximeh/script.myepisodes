@@ -12,7 +12,7 @@
     <summary lang="en">MyEpisodes</summary>
     <description lang="en">Automatically set watched episodes on MyEpisodes.com</description>
     <platform>all</platform>
-    <language>en fr it pt</language>
+    <language>en fr it pt es</language>
     <forum></forum>
     <website></website>
     <source>https://github.com/maximeh/script.myepisodes</source>
