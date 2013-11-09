@@ -114,12 +114,8 @@ class Player(xbmc.Player):
         # XBMC.Subtitles add-ons)
         self.season = str(xbmc.getInfoLabel("VideoPlayer.Season"))
         log('Player - Season: %s' % self.season)
-        if self.season != "":
-            self.season = int(self.season)
         self.episode = str(xbmc.getInfoLabel("VideoPlayer.Episode"))
         log('Player - Episode: %s' % self.episode)
-        if self.episode != "":
-            self.episode = int(self.episode)
         self.title = xbmc.getInfoLabel("VideoPlayer.TVshowtitle")
         log('Player - TVShow: %s' % self.title)
         if self.title == "":
@@ -129,8 +125,8 @@ class Player(xbmc.Player):
             self.title, self.season, self.episode = self.mye.get_info(filename)
             log('Player - TVShow: %s' % self.title)
 
-        log("Title: %s - Season: %02d - Ep: %02d" % (self.title, self.season, self.episode))
-        if (self.season is None) and (self.episode is None):
+        log("Title: %s - Season: %s - Ep: %s" % (self.title, self.season, self.episode))
+        if not self.season and not self.episode:
             # It's not a show. If it should be recognised as one. Send a bug.
             self._tearDown()
             return
@@ -140,7 +136,7 @@ class Player(xbmc.Player):
             notif("%s %s" % (self.title, __language__(30923)), time=3000)
             self._tearDown()
             return
-        log('Player - Found : %s - %d (S%02d E%02d)' % (self.title,
+        log('Player - Found : %s - %d (S%s E%s)' % (self.title,
                 self.showid, self.season, self.episode))
 
         if bool(__addon__.getSetting('auto-add')):
@@ -163,7 +159,7 @@ class Player(xbmc.Player):
         found = 30923
         if self.mye.set_episode_watched(self.showid, self.season, self.episode):
             found = 30924
-        notif("%s (%02d - %02d) %s" % (self.title, self.season, self.episode,
+        notif("%s (%s - %s) %s" % (self.title, self.season, self.episode,
             __language__(found)))
 
 def notif(msg, time=5000):

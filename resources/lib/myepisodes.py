@@ -126,16 +126,22 @@ class MyEpisodes(object):
 
     # This is totally stolen from script.xbmc.subtitles plugin !
     def get_info(self, file_name):
+        title = None
+        episode = None
+        season = None
         for regex in REGEX_EXPRESSIONS:
             response_file = re.findall(regex, file_name)
-            if len(response_file) < 0 :
+            if len(response_file) > 0 :
+                episode = response_file[0][0]
+                season = response_file[0][1]
+            else:
                 continue
             title = re.split(regex, file_name)[0]
             for char in ['[', ']', '_', '(', ')', '.', '-']:
                 title = title.replace(char, ' ')
             title = title.strip()
-            return title, int(response_file[0][0]), int(response_file[0][1])
-        return None
+            return title, season, episode
+        return None, None, None
 
     def add_show(self, show_id):
         # Try to add the show to your account.
@@ -149,7 +155,7 @@ class MyEpisodes(object):
     def set_episode_watched(self, show_id, season, episode):
         pre_url = "%s/myshows.php?action=Update" % MYEPISODE_URL
         seen_url = "%s&showid=%d&season=%02d&episode=%02d&seen=1" % (pre_url,
-                show_id, season, episode)
+                show_id, int(season), int(episode))
         data = self.send_req(seen_url)
         if data is None:
             return False
