@@ -160,7 +160,7 @@ class MyEpisodes(object):
             for char in ['[', ']', '_', '(', ')', '.', '-']:
                 title = title.replace(char, ' ')
             title = title.strip()
-            return title, season, episode
+            return title.title(), season, episode
         return None, None, None
 
     def add_show(self, show_id):
