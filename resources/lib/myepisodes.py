@@ -34,6 +34,7 @@ class MyEpisodes(object):
     def __init__(self, userid, password):
         self.userid = userid
         self.password = password
+        self.is_logged = False
         self.shows = {}
 
         self.cj = cookielib.CookieJar()
@@ -62,11 +63,11 @@ class MyEpisodes(object):
             })
         login_url = "%s/%s" % (MYEPISODE_URL, "login.php")
         data = self.send_req(login_url, login_data)
+        self.is_logged = True
         # Quickly check if it seems we are logged on.
         if (data is None) or (self.userid not in data):
-            return False
-
-        return True
+            self.is_logged = False
+        return self.is_logged
 
     def get_show_list(self):
         # Populate shows with the list of show_ids in our account
