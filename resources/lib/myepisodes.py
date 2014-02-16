@@ -34,7 +34,6 @@ class MyEpisodes(object):
     def __init__(self, userid, password):
         self.userid = userid
         self.password = password
-        self.is_logged = False
         self.shows = {}
 
         self.cj = cookielib.CookieJar()
@@ -48,14 +47,6 @@ class MyEpisodes(object):
             ('User-agent', 'Lynx/2.8.1pre.9 libwww-FM/2.14')
         ]
 
-    def send_req(self, url, data = None):
-        try:
-            response = self.opener.open(url, data)
-            return ''.join(response.readlines())
-        except:
-            return None
-
-    def login(self):
         login_data = urllib.urlencode({
             'username' : self.userid,
             'password' : self.password,
@@ -67,7 +58,13 @@ class MyEpisodes(object):
         # Quickly check if it seems we are logged on.
         if (data is None) or (self.userid not in data):
             self.is_logged = False
-        return self.is_logged
+
+    def send_req(self, url, data = None):
+        try:
+            response = self.opener.open(url, data)
+            return ''.join(response.readlines())
+        except:
+            return None
 
     def get_show_list(self):
         # Populate shows with the list of show_ids in our account
