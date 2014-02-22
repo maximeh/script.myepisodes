@@ -25,54 +25,54 @@ msgctxt "Addon Description"
 msgid "Automatically set watched episodes on MyEpisodes.com"
 msgstr ""
 
-msgctxt "#30901"
+msgctxt "#32901"
 msgid "General Settings"
 msgstr ""
 
-msgctxt "#30902"
+msgctxt "#32902"
 msgid "Username"
 msgstr ""
 
-msgctxt "#30903"
+msgctxt "#32903"
 msgid "Password"
 msgstr ""
 
-msgctxt "#30904"
+msgctxt "#32904"
 msgid "Mark as watched from"
 msgstr ""
 
-msgctxt "#30905"
+msgctxt "#32905"
 msgid "Automatically add shows"
 msgstr ""
 
-#empty strings from id 30906 to 30910
+#empty strings from id 32906 to 32910
 
-msgctxt "#30911"
+msgctxt "#32911"
 msgid "connected"
 msgstr ""
 
-msgctxt "#30912"
+msgctxt "#32912"
 msgid "Authentification failed"
 msgstr ""
 
-#empty strings from id 30913 to 30922
+#empty strings from id 32913 to 32922
 
-msgctxt "#30923"
+msgctxt "#32923"
 msgid "not found."
 msgstr ""
 
-msgctxt "#30924"
+msgctxt "#32924"
 msgid "marked as watched."
 msgstr ""
 
-msgctxt "#30925"
+msgctxt "#32925"
 msgid "added."
 msgstr ""
 
-msgctxt "#30926"
+msgctxt "#32926"
 msgid "can not be added."
 msgstr ""
 
-msgctxt "#30927"
+msgctxt "#32927"
 msgid "unable to retrieve your show lists."
 msgstr ""

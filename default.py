@@ -79,18 +79,18 @@ class Player(xbmc.Player):
         username = __addon__.getSetting('Username')
         password = __addon__.getSetting('Password')
 
-        login_notif = __language__(30912)
+        login_notif = __language__(32912)
         if username is "" or password is "":
             notif(login_notif, time=2500)
             return None
 
         mye = MyEpisodes(username, password)
         if mye.is_logged:
-            login_notif = "%s %s" % (username, __language__(30911))
+            login_notif = "%s %s" % (username, __language__(32911))
         notif(login_notif, time=2500)
 
         if mye.is_logged and (not mye.get_show_list()):
-            notif(__language__(30927), time=2500)
+            notif(__language__(32927), time=2500)
         return mye
 
     def _addShow(self):
@@ -99,9 +99,9 @@ class Player(xbmc.Player):
             notif(self.title, time=2000)
             return
         was_added = self.mye.add_show(self.showid)
-        added = 30926
+        added = 32926
         if was_added:
-            added = 30925
+            added = 32925
         notif("%s %s" % (self.title, __language__(added)))
 
     def onPlayBackStarted(self):
@@ -132,7 +132,7 @@ class Player(xbmc.Player):
 
         self.showid = self.mye.find_show_id(self.title)
         if self.showid is None:
-            notif("%s %s" % (self.title, __language__(30923)), time=3000)
+            notif("%s %s" % (self.title, __language__(32923)), time=3000)
             self._tearDown()
             return
         log('Player - Found : %s - %d (S%s E%s)' % (self.title,
@@ -155,9 +155,9 @@ class Player(xbmc.Player):
             return
 
         # Playback is finished, set the items to watched
-        found = 30923
+        found = 32923
         if self.mye.set_episode_watched(self.showid, self.season, self.episode):
-            found = 30924
+            found = 32924
         notif("%s (%s - %s) %s" % (self.title, self.season, self.episode,
             __language__(found)))
 
