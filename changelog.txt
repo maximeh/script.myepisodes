@@ -1,3 +1,8 @@
+1.0.15
++ Exclude pvr; http; https streaming.
++ Update BeautifulSoup to last version
++ Update Python to last version
++ Add missing license tag
 1.0.14
 + Fix dummy mistake, sorry for the inconvenience
 1.0.13
