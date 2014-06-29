@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 import sys
 import threading
 import xbmc
@@ -109,6 +110,13 @@ class Player(xbmc.Player):
         self._totalTime = self.getTotalTime()
         self._tracker.start()
 
+        filename_full_path = self.getPlayingFile().decode('utf-8')
+        # We don't want to take care of any URL because we can't really gain
+        # information from it.
+        if _is_excluded(filename_full_path):
+            self._tearDown()
+            return
+
         # Try to find the title with the help of XBMC (Theses came from
         # XBMC.Subtitles add-ons)
         self.season = str(xbmc.getInfoLabel("VideoPlayer.Season"))
@@ -118,8 +126,7 @@ class Player(xbmc.Player):
         self.title = xbmc.getInfoLabel("VideoPlayer.TVshowtitle")
         log('Player - TVShow: %s' % self.title)
         if self.title == "":
-            filename = self.getPlayingFile().decode('utf-8')
-            filename = os.path.basename(filename)
+            filename = os.path.basename(filename_full_path)
             log('Player - Filename: %s' % filename)
             self.title, self.season, self.episode = self.mye.get_info(filename)
             log('Player - TVShow: %s' % self.title)
@@ -168,6 +175,11 @@ def notif(msg, time=5000):
 def log(msg):
     xbmc.log("### [%s] - %s" % (__scriptname__, msg.encode('utf-8'), ),
             level=xbmc.LOGDEBUG)
+
+def _is_excluded(filename):
+    log("_is_excluded(): Check if '%s' is a URL." % filename)
+    excluded_protocols = ["pvr://", "http://", "https://"]
+    return any(protocol in filename for protocol in excluded_protocols)
 
 if ( __name__ == "__main__" ):
     player = Player()
