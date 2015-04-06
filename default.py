@@ -183,9 +183,18 @@ def log(msg):
 def _is_excluded(filename):
     log("_is_excluded(): Check if '%s' is a URL." % filename)
     excluded_protocols = ["pvr://", "http://", "https://"]
-    return any(protocol in filename for protocol in excluded_protocols)
+    if any(protocol in filename for protocol in excluded_protocols):
+        return True
 
-if ( __name__ == "__main__" ):
+    for setting_name in ["ExcludedPath", "ExcludedPath2", "ExcludedPath3"]:
+        excludepath = __addon__.getSetting(setting_name)
+        if excludepath == "":
+            continue
+        if excludepath in filename:
+            log("_is_excluded(): Video is excluded (%s)." % setting_name)
+            return True
+
+if __name__ == "__main__":
     player = Player()
     if not player.mye.is_logged:
         sys.exit(0)

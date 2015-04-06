@@ -45,6 +45,14 @@ msgctxt "#32905"
 msgid "Automatically add shows"
 msgstr "Ajouter les séries automatiquement"
 
+msgctxt "#32906"
+msgid "Exclude path"
+msgstr "Exclure un chemin"
+
+msgctxt "#32907"
+msgid "Folder's path (including subfolders)"
+msgstr "Chemin de dossier (incluant les sous-dossiers)"
+
 msgctxt "#32911"
 msgid "connected"
 msgstr "connecté"

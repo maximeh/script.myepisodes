@@ -45,7 +45,15 @@ msgctxt "#32905"
 msgid "Automatically add shows"
 msgstr ""
 
-#empty strings from id 32906 to 32910
+msgctxt "#32906"
+msgid "Exclude path"
+msgstr ""
+
+msgctxt "#32907"
+msgid "Folder's path (including subfolders)"
+msgstr ""
+
+#empty strings from id 32907 to 32910
 
 msgctxt "#32911"
 msgid "connected"
