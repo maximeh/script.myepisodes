@@ -60,7 +60,7 @@ class MyEpisodes(object):
         if (data is None) or (self.userid not in data):
             self.is_logged = False
 
-    def send_req(self, url, data = None):
+    def send_req(self, url, data=None):
         try:
             response = self.opener.open(url, data)
             return ''.join(response.readlines())
@@ -109,7 +109,7 @@ class MyEpisodes(object):
     def find_show_id(self, show_name):
         # Try to find the ID of the show in our account first
         # Create a slice with only the show that may match
-        slice_show  = {}
+        slice_show = {}
         show_name = show_name.lower()
         for keys, v in self.shows.iteritems():
             if ';' in keys:
@@ -143,7 +143,7 @@ class MyEpisodes(object):
         if show_href is None:
             # Try to lookup the list of all the shows to find the exact title
             list_url = "%s/%s?list=%s" % (MYEPISODE_URL, "shows.php",
-                    show_name[0].upper())
+                                          show_name[0].upper())
             data = self.send_req(list_url)
             show_href = self.find_show_link(data, show_name, strict=True)
 
@@ -164,7 +164,7 @@ class MyEpisodes(object):
         season = None
         for regex in REGEX_EXPRESSIONS:
             response_file = re.findall(regex, file_name)
-            if len(response_file) > 0 :
+            if len(response_file) > 0:
                 season = response_file[0][0]
                 episode = response_file[0][1]
             else:
@@ -178,7 +178,7 @@ class MyEpisodes(object):
     def add_show(self, show_id):
         # Try to add the show to your account.
         url = "%s/views.php?type=manageshow&mode=add&showid=%d" % (
-                MYEPISODE_URL, show_id)
+            MYEPISODE_URL, show_id)
         data = self.send_req(url)
         if data is None:
             return False
@@ -188,9 +188,11 @@ class MyEpisodes(object):
 
     def set_episode_watched(self, show_id, season, episode):
         pre_url = "%s/myshows.php?action=Update" % MYEPISODE_URL
-        seen_url = "%s&showid=%d&season=%02d&episode=%02d&seen=1" % (pre_url,
-                show_id, int(season), int(episode))
-        data = self.send_req(seen_url)
+        seen_url = "%s&showid=%d&season=%02d&episode=%02d" % (pre_url,
+                                                              show_id,
+                                                              int(season),
+                                                              int(episode))
+        data = self.send_req("%s&seen=1" % seen_url)
         if data is None:
             return False
         return True

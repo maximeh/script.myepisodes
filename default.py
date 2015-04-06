@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
 import sys
 import threading
 import xbmc
@@ -20,29 +19,29 @@ __resource__      = xbmc.translatePath(__resource_path__).decode('utf-8')
 from resources.lib.myepisodes import MyEpisodes
 
 class Monitor(xbmc.Monitor):
-    def __init__( self, *args, **kwargs ):
-        xbmc.Monitor.__init__( self )
+    def __init__(self, *args, **kwargs):
+        xbmc.Monitor.__init__(self)
         self.action = kwargs['action']
 
-    def onSettingsChanged( self ):
+    def onSettingsChanged(self):
         log('#DEBUG# onSettingsChanged')
         self.action()
 
 class Player(xbmc.Player):
 
-    def __init__ (self):
+    def __init__(self):
         xbmc.Player.__init__(self)
         log('Player - init')
         self.mye = self._loginMyEpisodes()
         if not self.mye.is_logged:
             return
         self.showid = self.episode = self.title = self.season = None
-        self._totalTime = 999999
-        self._lastPos = 0
+        self._total_time = 999999
+        self._last_pos = 0
         self._min_percent = int(__addon__.getSetting('watched-percent'))
         self._tracker = None
-        self._playbackLock = threading.Event()
-        self._monitor = Monitor(action = self._reset)
+        self._playback_lock = threading.Event()
+        self._monitor = Monitor(action=self._reset)
 
     def _reset(self):
         self._tearDown()
@@ -51,22 +50,22 @@ class Player(xbmc.Player):
         self.__init__()
 
     def _trackPosition(self):
-        while self._playbackLock.isSet() and not xbmc.abortRequested:
+        while self._playback_lock.isSet() and not xbmc.abortRequested:
             try:
-                self._lastPos = self.getTime()
+                self._last_pos = self.getTime()
             except:
-                self._playbackLock.clear()
-            log('Inside Player. Tracker time = %s' % self._lastPos)
+                self._playback_lock.clear()
+            log('Inside Player. Tracker time = %s' % self._last_pos)
             xbmc.sleep(250)
-        log('Position tracker ending with lastPos = %s' % self._lastPos)
+        log('Position tracker ending with last_pos = %s' % self._last_pos)
 
     def _setUp(self):
-        self._playbackLock.set()
+        self._playback_lock.set()
         self._tracker = threading.Thread(target=self._trackPosition)
 
     def _tearDown(self):
-        if hasattr(self, '_playbackLock'):
-            self._playbackLock.clear()
+        if hasattr(self, '_playback_lock'):
+            self._playback_lock.clear()
         self._monitor = None
         if not hasattr(self, '_tracker'):
             return
@@ -107,7 +106,7 @@ class Player(xbmc.Player):
 
     def onPlayBackStarted(self):
         self._setUp()
-        self._totalTime = self.getTotalTime()
+        self._total_time = self.getTotalTime()
         self._tracker.start()
 
         filename_full_path = self.getPlayingFile().decode('utf-8')
@@ -131,7 +130,9 @@ class Player(xbmc.Player):
             self.title, self.season, self.episode = self.mye.get_info(filename)
             log('Player - TVShow: %s' % self.title)
 
-        log("Title: %s - Season: %s - Ep: %s" % (self.title, self.season, self.episode))
+        log("Title: %s - Season: %s - Ep: %s" % (self.title,
+                                                 self.season,
+                                                 self.episode))
         if not self.season and not self.episode:
             # It's not a show. If it should be recognised as one. Send a bug.
             self._tearDown()
@@ -143,7 +144,9 @@ class Player(xbmc.Player):
             self._tearDown()
             return
         log('Player - Found : %s - %d (S%s E%s)' % (self.title,
-                self.showid, self.season, self.episode))
+                                                    self.showid,
+                                                    self.season,
+                                                    self.episode))
 
         if __addon__.getSetting('auto-add') == "true":
             self._addShow()
@@ -155,10 +158,11 @@ class Player(xbmc.Player):
     def onPlayBackEnded(self):
         self._tearDown()
 
-        actual_percent = (self._lastPos/self._totalTime)*100
-        log('lastPos / totalTime : %s / %s = %s %%' % (self._lastPos,
-            self._totalTime, actual_percent))
-        if (actual_percent < self._min_percent):
+        actual_percent = (self._last_pos/self._total_time)*100
+        log('last_pos / total_time : %s / %s = %s %%' % (self._last_pos,
+                                                         self._total_time,
+                                                         actual_percent))
+        if actual_percent < self._min_percent:
             return
 
         # Playback is finished, set the items to watched
@@ -166,7 +170,7 @@ class Player(xbmc.Player):
         if self.mye.set_episode_watched(self.showid, self.season, self.episode):
             found = 32924
         notif("%s (%s - %s) %s" % (self.title, self.season, self.episode,
-            __language__(found)))
+                                   __language__(found)))
 
 def notif(msg, time=5000):
     notif_msg = "%s, %s, %i, %s" % ('MyEpisodes', msg, time, __icon__)
@@ -174,7 +178,7 @@ def notif(msg, time=5000):
 
 def log(msg):
     xbmc.log("### [%s] - %s" % (__scriptname__, msg.encode('utf-8'), ),
-            level=xbmc.LOGDEBUG)
+             level=xbmc.LOGDEBUG)
 
 def _is_excluded(filename):
     log("_is_excluded(): Check if '%s' is a URL." % filename)
@@ -186,7 +190,7 @@ if ( __name__ == "__main__" ):
     if not player.mye.is_logged:
         sys.exit(0)
 
-    log( "[%s] - Version: %s Started" % (__scriptname__, __version__))
+    log("[%s] - Version: %s Started" % (__scriptname__, __version__))
 
     while not xbmc.abortRequested:
         xbmc.sleep(100)
