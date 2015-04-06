@@ -1,3 +1,5 @@
+1.1.0
++ Add option to exclude path
 1.0.15
 + Exclude pvr; http; https streaming.
 + Update BeautifulSoup to last version
