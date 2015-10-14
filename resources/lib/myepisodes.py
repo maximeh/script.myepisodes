@@ -79,7 +79,7 @@ class MyEpisodes(object):
         for row in mylist_tr:
             link = row.find('a', {'href': True})
             link_url = link.get('href')
-            showid = urlparse.parse_qs(link_url)['showid'][0]
+            showid = link.split('/')[2]
             key = link.text.strip()
             sanitized_key = sanitize(key, '')
             if sanitized_key != key:
@@ -152,10 +152,15 @@ class MyEpisodes(object):
             return None
 
         show_url = urlparse.urlparse(show_href)
-        params = urlparse.parse_qs(show_url.query)
-        if 'showid' not in params:
+        try:
+            showid = show_url.path.split('/')[2]
+        except IndexError:
             return None
-        return int(params['showid'][0].strip())
+
+        if showid is None:
+            return None
+
+        return int(showid)
 
     # This is totally stolen from script.xbmc.subtitles plugin !
     def get_info(self, file_name):
