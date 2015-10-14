@@ -1,3 +1,5 @@
+1.2.0
++ Support new URL schemes from MyEpisodes
 1.1.1
 + Fix unicode username
 1.1.0
