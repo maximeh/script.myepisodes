@@ -1,3 +1,5 @@
+1.2.1
++ Fix bug in 1.2.0 (wrong variable used)
 1.2.0
 + Support new URL schemes from MyEpisodes
 1.1.1
