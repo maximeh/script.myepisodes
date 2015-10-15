@@ -79,7 +79,7 @@ class MyEpisodes(object):
         for row in mylist_tr:
             link = row.find('a', {'href': True})
             link_url = link.get('href')
-            showid = link.split('/')[2]
+            showid = link_url.split('/')[2]
             key = link.text.strip()
             sanitized_key = sanitize(key, '')
             if sanitized_key != key:
