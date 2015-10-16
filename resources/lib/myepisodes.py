@@ -33,7 +33,7 @@ def sanitize(title, replace):
 class MyEpisodes(object):
 
     def __init__(self, userid, password):
-        self.userid = userid
+        self.userid = userid.encode('utf-8', 'replace')
         self.password = password
         self.shows = {}
 
@@ -201,4 +201,3 @@ class MyEpisodes(object):
         if data is None:
             return False
         return True
-

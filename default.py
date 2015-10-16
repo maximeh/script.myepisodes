@@ -76,7 +76,7 @@ class Player(xbmc.Player):
         self._tracker = None
 
     def _loginMyEpisodes(self):
-        username = __addon__.getSetting('Username')
+        username = __addon__.getSetting('Username').decode('utf-8', 'replace')
         password = __addon__.getSetting('Password')
 
         login_notif = __language__(32912)
@@ -173,10 +173,9 @@ class Player(xbmc.Player):
                                    __language__(found)))
 
 def notif(msg, time=5000):
-    notif_msg = "%s, %s, %i, %s" % ('MyEpisodes',
-                                    msg.decode('utf-8', "replace"),
-                                    time, __icon__)
-    xbmc.executebuiltin("XBMC.Notification(%s)" % notif_msg.encode('utf-8'))
+    notif_msg = "%s, %s, %i, %s" % ('MyEpisodes', msg, time, __icon__)
+    notif_msg = notif_msg.encode('utf-8', 'replace')
+    xbmc.executebuiltin("XBMC.Notification(%s)" % notif_msg)
 
 def log(msg):
     xbmc.log("### [%s] - %s" % (__scriptname__, msg.encode('utf-8'), ),
