@@ -9,7 +9,8 @@ import xbmcaddon
 
 __addon__         = xbmcaddon.Addon()
 __cwd__           = __addon__.getAddonInfo('path')
-__icon__          = __addon__.getAddonInfo("icon")
+__icon_path__     = __addon__.getAddonInfo("icon")
+__icon__          = xbmc.translatePath(__icon_path__).decode('utf-8')
 __scriptname__    = __addon__.getAddonInfo('name')
 __version__       = __addon__.getAddonInfo('version')
 __language__      = __addon__.getLocalizedString
