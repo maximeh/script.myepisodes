@@ -52,8 +52,9 @@ class MyEpisodes(object):
             'username' : self.userid,
             'password' : self.password,
             'action' : "Login",
+            'u': ""
             })
-        login_url = "%s/%s" % (MYEPISODE_URL, "login.php")
+        login_url = "%s/%s" % (MYEPISODE_URL, "login.php?action=login")
         data = self.send_req(login_url, login_data)
         self.is_logged = True
         # Quickly check if it seems we are logged on.
