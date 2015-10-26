@@ -58,7 +58,7 @@ class MyEpisodes(object):
         data = self.send_req(login_url, login_data)
         self.is_logged = True
         # Quickly check if it seems we are logged on.
-        if (data is None) or (self.userid not in data):
+        if (data is None) or (self.userid.lower() not in data.lower()):
             self.is_logged = False
 
     def send_req(self, url, data=None):
