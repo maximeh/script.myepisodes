@@ -189,9 +189,10 @@ def _is_excluded(filename):
         return True
 
     for setting_name in ["ExcludedPath", "ExcludedPath2", "ExcludedPath3"]:
-        excludepath = __addon__.getSetting(setting_name)
-        if excludepath == "":
+        exclude = __addon__.getSetting(setting_name)
+        if exclude == "":
             continue
+        excludepath = xbmc.translatePath(exclude).decode('utf-8')
         if excludepath in filename:
             log("_is_excluded(): Video is excluded (%s)." % setting_name)
             return True
