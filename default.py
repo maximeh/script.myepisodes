@@ -188,7 +188,7 @@ def _is_excluded(filename):
     if any(protocol in filename for protocol in excluded_protocols):
         return True
 
-    for setting_name in ["ExcludedPath", "ExcludedPath2", "ExcludedPath3"]:
+    for setting_name in ["ExcludePath", "ExcludePath2", "ExcludePath3"]:
         exclude = __addon__.getSetting(setting_name)
         if exclude == "":
             continue
