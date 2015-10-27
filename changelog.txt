@@ -1,3 +1,5 @@
+1.2.6
++ Fix typo in settings name preventing the of the exclude feature
 1.2.5
 + Better login check
 + Fix for excluded path with non ASCII char.
