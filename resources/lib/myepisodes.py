@@ -57,6 +57,7 @@ class MyEpisodes(object):
         login_url = "%s/%s" % (MYEPISODE_URL, "login.php?action=login")
         data = self.send_req(login_url, login_data)
         self.is_logged = True
+        self.title_is_filename = False
         # Quickly check if it seems we are logged on.
         if (data is None) or (self.userid.lower() not in data.lower()):
             self.is_logged = False
@@ -97,12 +98,15 @@ class MyEpisodes(object):
         for link in soup.findAll("a", href=True):
             if link.string is None:
                 continue
+            link_text = link.string.lower()
+            if self.title_is_filename:
+                link_text = sanitize(link_text, ' ')
             if strict:
-                if link.string.lower() == show_name:
+                if link_text == show_name:
                     show_href = link.get('href')
                     break
             else:
-                if link.string.lower().startswith(show_name):
+                if link_text.startswith(show_name):
                     show_href = link.get('href')
                     break
         return show_href
@@ -178,6 +182,7 @@ class MyEpisodes(object):
             title = re.split(regex, file_name)[0]
             title = sanitize(title, ' ')
             title = title.strip()
+            self.title_is_filename = True
             return title.title(), season, episode
         return None, None, None
 

@@ -63,6 +63,7 @@ class Player(xbmc.Player):
     def _setUp(self):
         self._playback_lock.set()
         self._tracker = threading.Thread(target=self._trackPosition)
+        self.mye.is_title_filename = False
 
     def _tearDown(self):
         if hasattr(self, '_playback_lock'):
