@@ -50,3 +50,13 @@ If you can't or don't want to build this plugin, look at the release tab.
 You can download the last plugin from there.
 
 [Download](https://github.com/maximeh/script.myepisodes/releases/download/1.2.7/script.myepisodes-1.2.7.zip?raw=true) the latests version.
+
+known issues
+============
+
+The search engine of myepisodes is *crappy* (which is very polite), it doesn't
+understand the difference between "Mr Robot" and "Mr. Robot".
+If the plugin reports that it can't find your show, it means that you have to
+find it yourself on the website of MyEpisodes and add it to your shows, then
+the plugin should be able to pick it up. If that's not the case, feel free to
+open an issue.
