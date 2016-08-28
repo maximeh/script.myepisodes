@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from BeautifulSoup import BeautifulSoup
 import cookielib
 import re
-import urllib, urllib2, urlparse
+import urllib
+import urllib2
+import urlparse
+from BeautifulSoup import BeautifulSoup
 
 # This is totally stolen from script.xbmc.subtitles plugin !
 REGEX_EXPRESSIONS = [
@@ -36,12 +38,12 @@ class MyEpisodes(object):
         self.password = password
         self.shows = {}
 
-        self.cj = cookielib.CookieJar()
+        self.cookiejar = cookielib.CookieJar()
         self.opener = urllib2.build_opener(
             urllib2.HTTPRedirectHandler(),
             urllib2.HTTPHandler(debuglevel=0),
             urllib2.HTTPSHandler(debuglevel=0),
-            urllib2.HTTPCookieProcessor(self.cj)
+            urllib2.HTTPCookieProcessor(self.cookiejar)
         )
         self.opener.addheaders = [
             ('User-agent', 'Lynx/2.8.1pre.9 libwww-FM/2.14')
@@ -144,9 +146,9 @@ class MyEpisodes(object):
         # Try Find a show through its name and report its id
         search_data = urllib.urlencode({
             'tvshow' : show_name,
-            'action' : 'Search myepisodes.com',
+            'action' : 'Search',
             })
-        search_url = "%s/%s" % (MYEPISODE_URL, "search.php")
+        search_url = "%s/%s" % (MYEPISODE_URL, "search")
         data = self.send_req(search_url, search_data)
         show_href = self.find_show_link(data, show_name)
 
