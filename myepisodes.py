@@ -78,14 +78,18 @@ class MyEpisodes(object):
 
     def get_show_list(self):
         # Populate shows with the list of show_ids in our account
-        wasted_url = "%s/%s" % (MYEPISODE_URL, "life_wasted.php")
-        data = self.send_req(wasted_url)
+        myshows_url = "%s/%s" % (MYEPISODE_URL, "myshows/list/")
+        data = self.send_req(myshows_url)
         if data is None:
             return False
         soup = BeautifulSoup(data)
         mylist = soup.find("table", {"class": "mylist"})
         mylist_tr = mylist.findAll("tr")[1:-1]
         for row in mylist_tr:
+            # Avoid shows marked as ignored
+            ignore_checkbox = row.find('input', {'type':'checkbox'})
+            if ignore_checkbox.get('checked') is not None:
+                continue
             link = row.find('a', {'href': True})
             link_url = link.get('href')
             showid = link_url.split('/')[2]
