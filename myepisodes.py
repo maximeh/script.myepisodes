@@ -77,6 +77,7 @@ class MyEpisodes(object):
             return None
 
     def get_show_list(self):
+        self.shows.clear()
         # Populate shows with the list of show_ids in our account
         myshows_url = "%s/%s" % (MYEPISODE_URL, "myshows/list/")
         data = self.send_req(myshows_url)
@@ -84,7 +85,7 @@ class MyEpisodes(object):
             return False
         soup = BeautifulSoup(data)
         mylist = soup.find("table", {"class": "mylist"})
-        mylist_tr = mylist.findAll("tr")[1:-1]
+        mylist_tr = mylist.findAll("tr")[1:]
         for row in mylist_tr:
             # Avoid shows marked as ignored
             ignore_checkbox = row.find('input', {'type':'checkbox'})
@@ -135,8 +136,10 @@ class MyEpisodes(object):
             for k in keys:
                 if show_name in k or show_name.startswith(k):
                     slice_show[k] = v
+
         if len(slice_show) == 1:
             return slice_show.values()[0]
+
         # We loop through a slice containings the possibilities and we
         # search strictly for the show name.
         for key, value in slice_show.iteritems():
@@ -198,23 +201,51 @@ class MyEpisodes(object):
         return None, None, None
 
     def add_show(self, show_id):
-        # Try to add the show to your account.
-        url = "%s/views.php?type=manageshow&mode=add&showid=%d" % (
-            MYEPISODE_URL, show_id)
-        data = self.send_req(url)
-        if data is None:
+        self._add_del_show(show_id)
+
+    def del_show(self, show_id):
+        self._add_del_show(show_id, mode="del")
+
+    def _add_del_show(self, show_id, mode="add"):
+        views_url = "{}/views.php".format(MYEPISODE_URL)
+
+        data = {
+            "type": "manageshow",
+            "mode": mode,
+            "showid": show_id
+        }
+
+        ret = self.send_req("{}?{}".format(views_url,
+                                           urllib.urlencode(data)))
+        if ret is None:
             return False
         # Update list
         self.get_show_list()
         return True
 
     def set_episode_watched(self, show_id, season, episode):
-        pre_url = "%s/myshows.php?action=Update" % MYEPISODE_URL
-        seen_url = "%s&showid=%d&season=%02d&episode=%02d" % (pre_url,
-                                                              show_id,
-                                                              int(season),
-                                                              int(episode))
-        data = self.send_req("%s&seen=1" % seen_url)
-        if data is None:
+        return self._set_episode_un_watched(show_id, season, episode)
+
+    def set_episode_unwatched(self, show_id, season, episode):
+        return self._set_episode_un_watched(show_id,
+                                            season,
+                                            episode,
+                                            watched=False)
+
+    def _set_episode_un_watched(self, show_id, season, episode, watched=True):
+        myshows_url = "{}/myshows.php".format(MYEPISODE_URL)
+        data = {
+            "action": "Update",
+            "showid": show_id,
+            "season": season,
+            "episode": episode,
+            "seen": 0
+        }
+        if watched:
+            data["seen"] = 1
+
+        ret = self.send_req("{}?{}".format(myshows_url,
+                                           urllib.urlencode(data)))
+        if ret is None:
             return False
         return True
