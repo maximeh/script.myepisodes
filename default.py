@@ -29,11 +29,11 @@ class Monitor(xbmc.Monitor):
         self.action()
 
 class Player(xbmc.Player):
+    MAX_LOGIN_ATTEMPTS = 3
 
     def __init__(self):
         xbmc.Player.__init__(self)
         log('Player - init')
-        self.keep_going = True
         self.login_attempts = 0
         self.mye = self._createMyEpisodes()
         if self.mye is not None:
@@ -87,29 +87,29 @@ class Player(xbmc.Player):
         login_notif = _language(32912)
         if username is "" or password is "":
             notif(login_notif, time=2500)
-            self.keep_going = False
+            self.login_attempts = self.MAX_LOGIN_ATTEMPTS
             return None
 
         mye = MyEpisodes(username, password)
         return mye
 
     def _tryLogin(self):
-        if not self.mye.is_logged:
-            keep_trying = self.mye.login()
+        if self.mye.is_logged:
+            return True
 
-            if self.mye.is_logged:
-                login_notif = "%s %s" % (_addon.getSetting('Username'), _language(32911))
-                self.login_attempts = 0
-            else:
-                login_notif = _language(32912)
-                self.login_attempts += 1
+        keep_trying = self.mye.login()
 
-            notif(login_notif, time=2500)
+        if self.mye.is_logged:
+            login_notif = "%s %s" % (_addon.getSetting('Username'), _language(32911))
+            self.login_attempts = 0
+        else:
+            login_notif = _language(32912)
+            self.login_attempts += 1
 
-            if self.mye.is_logged and (not self.mye.get_show_list()):
-                notif(_language(32927), time=2500)
+        notif(login_notif, time=2500)
 
-            self.keep_going = (3 > self.login_attempts)
+        if self.mye.is_logged and (not self.mye.get_show_list()):
+            notif(_language(32927), time=2500)
 
         return self.mye.is_logged
 
@@ -123,6 +123,9 @@ class Player(xbmc.Player):
         if was_added:
             added = 32925
         notif("%s %s" % (self.title, _language(added)))
+
+    def keepGoing(self):
+        return self.MAX_LOGIN_ATTEMPTS > self.login_attempts
 
     def onPlayBackStarted(self):
         if not self._tryLogin():
@@ -227,7 +230,7 @@ if __name__ == "__main__":
 
     log("[%s] - Version: %s Started" % (_scriptname, _version))
 
-    while not xbmc.abortRequested and player.keep_going:
+    while not xbmc.abortRequested and player.keepGoing():
         xbmc.sleep(100)
 
     player._tearDown()
