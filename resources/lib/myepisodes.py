@@ -48,6 +48,10 @@ class MyEpisodes(object):
             ('User-agent', 'Lynx/2.8.1pre.9 libwww-FM/2.14')
         ]
 
+        self.is_logged = False
+        self.title_is_filename = False
+
+    def login(self):
         login_data = urllib.urlencode({
             'username' : self.userid,
             'password' : self.password,
@@ -56,11 +60,13 @@ class MyEpisodes(object):
             })
         login_url = "%s/%s" % (MYEPISODE_URL, "login.php?action=login")
         data = self.send_req(login_url, login_data)
-        self.is_logged = True
-        self.title_is_filename = False
+
         # Quickly check if it seems we are logged on.
         if (data is None) or (self.userid.lower() not in data.lower()):
             self.is_logged = False
+        else:
+            self.is_logged = True
+
 
     def send_req(self, url, data=None):
         try:

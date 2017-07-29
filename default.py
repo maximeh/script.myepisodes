@@ -29,13 +29,16 @@ class Monitor(xbmc.Monitor):
         self.action()
 
 class Player(xbmc.Player):
+    MAX_LOGIN_ATTEMPTS = 3
 
     def __init__(self):
         xbmc.Player.__init__(self)
         log('Player - init')
-        self.mye = self._loginMyEpisodes()
-        if not self.mye.is_logged:
-            return
+        self.login_attempts = 0
+        self.mye = self._createMyEpisodes()
+        if self.mye is not None:
+            self._tryLogin()
+
         self.showid = self.episode = self.title = self.season = None
         self._total_time = 999999
         self._last_pos = 0
@@ -77,23 +80,38 @@ class Player(xbmc.Player):
             self._tracker.join()
         self._tracker = None
 
-    def _loginMyEpisodes(self):
+    def _createMyEpisodes(self):
         username = _addon.getSetting('Username').decode('utf-8', 'replace')
         password = _addon.getSetting('Password')
 
         login_notif = _language(32912)
         if username is "" or password is "":
             notif(login_notif, time=2500)
+            self.login_attempts = self.MAX_LOGIN_ATTEMPTS
             return None
 
         mye = MyEpisodes(username, password)
-        if mye.is_logged:
-            login_notif = "%s %s" % (username, _language(32911))
+        return mye
+
+    def _tryLogin(self):
+        if self.mye.is_logged:
+            return True
+
+        keep_trying = self.mye.login()
+
+        if self.mye.is_logged:
+            login_notif = "%s %s" % (_addon.getSetting('Username'), _language(32911))
+            self.login_attempts = 0
+        else:
+            login_notif = _language(32912)
+            self.login_attempts += 1
+
         notif(login_notif, time=2500)
 
-        if mye.is_logged and (not mye.get_show_list()):
+        if self.mye.is_logged and (not self.mye.get_show_list()):
             notif(_language(32927), time=2500)
-        return mye
+
+        return self.mye.is_logged
 
     def _addShow(self):
         # Add the show if it's not already in our account
@@ -106,7 +124,13 @@ class Player(xbmc.Player):
             added = 32925
         notif("%s %s" % (self.title, _language(added)))
 
+    def keepGoing(self):
+        return self.MAX_LOGIN_ATTEMPTS > self.login_attempts
+
     def onPlayBackStarted(self):
+        if not self._tryLogin():
+            return
+
         self._setUp()
         self._total_time = self.getTotalTime()
         self._tracker.start()
@@ -158,6 +182,9 @@ class Player(xbmc.Player):
         self.onPlayBackEnded()
 
     def onPlayBackEnded(self):
+        if not self._tryLogin():
+            return
+
         self._tearDown()
 
         actual_percent = (self._last_pos/self._total_time)*100
@@ -200,12 +227,10 @@ def _is_excluded(filename):
 
 if __name__ == "__main__":
     player = Player()
-    if not player.mye.is_logged:
-        sys.exit(0)
 
     log("[%s] - Version: %s Started" % (_scriptname, _version))
 
-    while not xbmc.abortRequested:
+    while not xbmc.abortRequested and player.keepGoing():
         xbmc.sleep(100)
 
     player._tearDown()
