@@ -1,3 +1,5 @@
+2.0.0
++ Rework the whole script
 1.2.8
 + Minor tweaks in the code
 + Fix break with latests update
