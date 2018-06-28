@@ -3,25 +3,26 @@
 import os
 import sys
 import threading
+import logging
+
 import xbmc
 import xbmcaddon
 
-import logging
 import utils
 import kodilogging
 
 from myepisodes import MyEpisodes
 
-_addon         = xbmcaddon.Addon()
-_cwd           = _addon.getAddonInfo('path')
-_language      = _addon.getLocalizedString
+_addon = xbmcaddon.Addon()
+_cwd = _addon.getAddonInfo('path')
+_language = _addon.getLocalizedString
 _resource_path = os.path.join(_cwd, 'resources', 'lib')
-_resource      = xbmc.translatePath(_resource_path).decode('utf-8')
+_resource = xbmc.translatePath(_resource_path).decode('utf-8')
 
 kodilogging.config()
 logger = logging.getLogger(__name__)
 
-class myeMonitor(xbmc.Monitor):
+class MyeMonitor(xbmc.Monitor):
     def __init__(self, *args, **kwargs):
         xbmc.Monitor.__init__(self)
         self.action = kwargs['action']
@@ -30,25 +31,50 @@ class myeMonitor(xbmc.Monitor):
         logger.debug('User changed settings')
         self.action()
 
-class myePlayer(xbmc.Player):
+def _initMyEpisodes():
+    username = _addon.getSetting('Username').decode('utf-8', 'replace')
+    password = _addon.getSetting('Password')
+
+    login_notif = _language(32912)
+    if not username or not password:
+        utils.notif(login_notif, time=2500)
+        return None
+
+    mye = MyEpisodes(username, password)
+    mye.login()
+    if mye.is_logged:
+        login_notif = "%s %s" % (username, _language(32911))
+    utils.notif(login_notif, time=2500)
+
+    if mye.is_logged and (not mye.populate_show_list()):
+        utils.notif(_language(32927), time=2500)
+    return mye
+
+
+class MyePlayer(xbmc.Player):
 
     def __init__(self):
         xbmc.Player.__init__(self)
-        logger.debug('myePlayer - init')
-        self.mye = self._loginMyEpisodes()
+        logger.debug('MyePlayer - init')
+
+        self.mye = _initMyEpisodes()
         if not self.mye.is_logged:
             return
-        logger.debug('myePlayer - account is logged successfully.')
+
+        logger.debug('MyePlayer - account is logged successfully.')
+
         self.showid = self.episode = self.title = self.season = None
-        self._total_time = 999999
+        self.is_excluded = False
+        self._total_time = sys.maxsize
         self._last_pos = 0
         self._min_percent = int(_addon.getSetting('watched-percent'))
         self._tracker = None
         self._playback_lock = threading.Event()
-        self._monitor = myeMonitor(action=self._reset)
+        self._monitor = MyeMonitor(action=self._reset)
 
     def _reset(self):
-        self._tearDown()
+        logger.debug('_reset called')
+        self.tearDown()
         if self.mye:
             del self.mye
         self.__init__()
@@ -63,12 +89,11 @@ class myePlayer(xbmc.Player):
             xbmc.sleep(250)
         logger.debug('Tracker time (ended) = %f', self._last_pos)
 
-    def _setUp(self):
+    def setUp(self):
         self._playback_lock.set()
         self._tracker = threading.Thread(target=self._trackPosition)
-        self.mye.is_title_filename = False
 
-    def _tearDown(self):
+    def tearDown(self):
         if hasattr(self, '_playback_lock'):
             self._playback_lock.clear()
         self._monitor = None
@@ -79,24 +104,6 @@ class myePlayer(xbmc.Player):
         if self._tracker.isAlive():
             self._tracker.join()
         self._tracker = None
-
-    def _createMyEpisodes(self):
-        username = _addon.getSetting('Username').decode('utf-8', 'replace')
-        password = _addon.getSetting('Password')
-
-        login_notif = _language(32912)
-        if username is "" or password is "":
-            utils.notif(login_notif, time=2500)
-            return None
-
-        mye = MyEpisodes(username, password)
-        if mye.is_logged:
-            login_notif = "%s %s" % (username, _language(32911))
-        utils.notif(login_notif, time=2500)
-
-        if mye.is_logged and (not mye.get_show_list()):
-            utils.notif(_language(32927), time=2500)
-        return mye
 
     def _addShow(self):
         # Add the show if it's not already in our account
@@ -110,15 +117,17 @@ class myePlayer(xbmc.Player):
         utils.notif("%s %s" % (self.title, _language(added)))
 
     def onPlayBackStarted(self):
-        self._setUp()
+        self.setUp()
         self._total_time = self.getTotalTime()
         self._tracker.start()
 
         filename_full_path = self.getPlayingFile().decode('utf-8')
         # We don't want to take care of any URL because we can't really gain
         # information from it.
+        self.is_excluded = False
         if utils.is_excluded(filename_full_path):
-            self._tearDown()
+            self.is_excluded = True
+            self.tearDown()
             return
 
         # Try to find the title with the help of XBMC (Theses came from
@@ -139,13 +148,13 @@ class myePlayer(xbmc.Player):
                      self.title, self.season, self.episode)
         if not self.season and not self.episode:
             # It's not a show. If it should be recognised as one. Send a bug.
-            self._tearDown()
+            self.tearDown()
             return
 
         self.showid = self.mye.find_show_id(self.title)
         if self.showid is None:
             utils.notif("%s %s" % (self.title, _language(32923)), time=3000)
-            self._tearDown()
+            self.tearDown()
             return
         logger.debug('Player - Found : %s - %d (S%s E%s)',
                      self.title, self.showid, self.season, self.episode)
@@ -158,7 +167,11 @@ class myePlayer(xbmc.Player):
         self.onPlayBackEnded()
 
     def onPlayBackEnded(self):
-        self._tearDown()
+        self.tearDown()
+
+        logger.debug('onPlayBackEnded: is_exluded: %s', self.is_excluded)
+        if self.is_excluded:
+            return
 
         actual_percent = (self._last_pos/self._total_time)*100
         logger.debug('last_pos / total_time : %s / %s = %s %%',
@@ -170,19 +183,18 @@ class myePlayer(xbmc.Player):
         found = 32923
         if self.mye.set_episode_watched(self.showid, self.season, self.episode):
             found = 32924
-        utils.notif("%s (%s - %s) %s" % (self.title, self.season, self.episode,
-                                         _language(found)))
+        utils.notif("{0.title} ({0.season} - {0.episode}) {1}".format(self, _language(found)))
 
 if __name__ == "__main__":
-    player = myePlayer()
+    player = MyePlayer()
     if not player.mye.is_logged:
         sys.exit(0)
 
     logger.debug("[%s] - Version: %s Started", _addon.getAddonInfo('name'),
-                                               _addon.getAddonInfo('version'))
+                 _addon.getAddonInfo('version'))
 
     while not xbmc.abortRequested:
         xbmc.sleep(100)
 
-    player._tearDown()
+    player.tearDown()
     sys.exit(0)

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import xbmc
 import xbmcaddon
-import logging
 
 logger = logging.getLogger(__name__)
 
 _addon = xbmcaddon.Addon()
-_icon_path     = _addon.getAddonInfo("icon")
-_icon          = xbmc.translatePath(_icon_path).decode('utf-8')
-_scriptname    = _addon.getAddonInfo('name')
+_icon_path = _addon.getAddonInfo("icon")
+_icon = xbmc.translatePath(_icon_path).decode('utf-8')
+_scriptname = _addon.getAddonInfo('name')
 
 def getSettingAsBool(setting):
     return _addon.getSetting(setting).lower() == "true"
@@ -32,10 +32,12 @@ def is_excluded(filename):
     logger.debug("_is_excluded(): Check if '%s' is a URL.", filename)
     excluded_protocols = ["pvr://", "http://", "https://"]
     if any(protocol in filename for protocol in excluded_protocols):
+        logger.debug("_is_excluded(): '%s' is a URL; it's excluded.", filename)
         return True
 
     logger.debug("_is_excluded(): Check if '%s' is in an excluded path.", filename)
-    for index in xrange(1, 4):
+
+    for index in range(1, 4):
         if index == 1:
             index = ''
         exclude_option = getSettingAsBool("ExcludePathOption{}".format(index))
@@ -50,3 +52,4 @@ def is_excluded(filename):
         if exclude_path in filename:
             logger.debug("_is_excluded(): Video is excluded (ExcludePath%s).", index)
             return True
+    return False
