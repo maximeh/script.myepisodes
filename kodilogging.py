@@ -18,8 +18,6 @@
 from __future__ import unicode_literals
 import logging
 
-from utils import getSettingAsBool
-
 import xbmc
 import xbmcaddon
 
