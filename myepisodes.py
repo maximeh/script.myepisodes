@@ -22,6 +22,7 @@ REGEX_EXPRESSIONS = [
     ]
 
 MYEPISODE_URL = "http://www.myepisodes.com"
+MAX_LOGIN_ATTEMPTS = 3
 
 def sanitize(title, replace):
     for char in ['[', ']', '_', '(', ')', '.', '-']:
@@ -50,6 +51,7 @@ class MyEpisodes(object):
         return "MyEpisodes('%s', '%s')" % (self.userid, self.password)
 
     def login(self):
+        login_attempts = MAX_LOGIN_ATTEMPTS
         login_data = {
             'username' : self.userid,
             'password' : self.password,
@@ -57,10 +59,13 @@ class MyEpisodes(object):
             'u': ""
         }
 
-        data = self.req.post("%s/login/" % MYEPISODE_URL, data=login_data)
-        # Quickly check if it seems we are logged on.
-        if self.userid.lower() in data.content.lower():
-            self.is_logged = True
+        while login_attempts > 0 and not self.is_logged:
+            data = self.req.post("%s/login/" % MYEPISODE_URL, data=login_data)
+            # Quickly check if it seems we are logged on.
+            if self.userid.lower() in data.content.lower():
+                self.is_logged = True
+                return
+            login_attempts -= 1
 
     @logged
     def populate_show_list(self):
