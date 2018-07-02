@@ -68,7 +68,7 @@ class MyEpisodes(object):
             login_attempts -= 1
 
     @logged
-    def populate_show_list(self):
+    def populate_shows(self):
         self.shows.clear()
 
         # Populate shows with the list of show_ids in our account
@@ -214,7 +214,7 @@ class MyEpisodes(object):
             return False
 
         # Update list
-        self.populate_show_list()
+        self.populate_shows()
 
         return True
 

@@ -24,8 +24,8 @@ class TestMyEpisodes(unittest.TestCase):
         self.mye.login()
         self.assertTrue(self.mye.is_logged)
 
-    def test_03_populate_show(self):
-        self.mye.populate_show_list()
+    def test_03_populate_shows(self):
+        self.mye.populate_shows()
         results = {u'scandal': 8603,
                    u'zbrodnia': 16034,
                    u'mr. robot': 15082,
@@ -48,7 +48,6 @@ class TestMyEpisodes(unittest.TestCase):
 
     def test_06_del_show(self):
         self.mye.del_show(6585)
-        self.mye.populate_show_list()
         self.assertFalse('pretty little liars' in self.mye.shows.keys())
 
     def test_07_set_episode_watched(self):

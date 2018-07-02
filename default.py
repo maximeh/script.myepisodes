@@ -46,7 +46,7 @@ def _initMyEpisodes():
         login_notif = "%s %s" % (username, _language(32911))
     utils.notif(login_notif, time=2500)
 
-    if mye.is_logged and (not mye.populate_show_list()):
+    if mye.is_logged and (not mye.populate_shows()):
         utils.notif(_language(32927), time=2500)
     return mye
 
