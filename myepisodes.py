@@ -200,10 +200,10 @@ class MyEpisodes(object):
         return None, None, None
 
     def add_show(self, show_id):
-        self._add_del_show(show_id)
+        return self._add_del_show(show_id)
 
     def del_show(self, show_id):
-        self._add_del_show(show_id, mode="del")
+        return self._add_del_show(show_id, mode="del")
 
     @logged
     def _add_del_show(self, show_id, mode="add"):
