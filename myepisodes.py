@@ -207,12 +207,12 @@ class MyEpisodes(object):
 
     @logged
     def _add_del_show(self, show_id, mode="add"):
-        data = {
+        add_del_data = {
             "action": mode,
             "showid": show_id
         }
         data = self.req.post("%s/ajax/service.php" % MYEPISODE_URL,
-                             params={"mode": "show_manage"}, data=data)
+                             params={"mode": "show_manage"}, data=add_del_data)
         if data is None:
             return False
 
@@ -236,9 +236,9 @@ class MyEpisodes(object):
         # If you are wondering why the lower and conversion to str, it's
         # because the backend of MyEpisodes is so smart that it doesn't
         # understand "True" but only "true"...
-        post_data = {key: str(watched).lower()}
+        un_watched_data = {key: str(watched).lower()}
         data = self.req.post("%s/ajax/service.php" % MYEPISODE_URL,
-                             params={"mode": "eps_update"}, data=post_data)
+                             params={"mode": "eps_update"}, data=un_watched_data)
         if data.status_code != 200:
             return False
         return True
