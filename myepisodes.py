@@ -21,7 +21,7 @@ REGEX_EXPRESSIONS = [
     r'[\\\\/\\._ \\[\\(-]([0-9]+)x([0-9]+)([^\\\\/]*)$'
     ]
 
-MYEPISODE_URL = "http://www.myepisodes.com"
+MYEPISODE_URL = "https://www.myepisodes.com"
 MAX_LOGIN_ATTEMPTS = 3
 
 def sanitize(title, replace):
