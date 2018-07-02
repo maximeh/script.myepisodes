@@ -47,6 +47,9 @@ class MyEpisodes(object):
         self.is_logged = False
         self.shows = {}
 
+    def __del__(self):
+        self.req.close()
+
     def __repr__(self):
         return "MyEpisodes('%s', '%s')" % (self.userid, self.password)
 
