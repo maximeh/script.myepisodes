@@ -134,6 +134,8 @@ class MyEpisodes(object):
         # Try to find the ID of the show in our account first
         name = show_name.lower()
 
+        self.populate_shows()
+
         match_show = {k:v for k, v in self.shows.items() if name in k or name.startswith(k)}
 
         if len(match_show) == 1:
