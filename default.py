@@ -106,10 +106,19 @@ class MyePlayer(xbmc.Player):
         self._tracker = None
 
     def _addShow(self):
+
+        if _addon.getSetting('auto-add') != "true":
+            logger.debug('Auto-add function disabled.')
+            return
+
+        # Update the show dict to check if it has already been added somehow.
+        self.mye.populate_shows()
+
         # Add the show if it's not already in our account
         if self.showid in self.mye.shows.values():
-            utils.notif(self.title, time=2000)
+            logger.debug('Show is already in the account.')
             return
+
         was_added = self.mye.add_show(self.showid)
         added = 32926
         if was_added:
@@ -159,8 +168,8 @@ class MyePlayer(xbmc.Player):
         logger.debug('Player - Found : %s - %d (S%s E%s)',
                      self.title, self.showid, self.season, self.episode)
 
-        if _addon.getSetting('auto-add') == "true":
-            self._addShow()
+        utils.notif(self.title, time=2000)
+        self._addShow()
 
     def onPlayBackStopped(self):
         # User stopped the playback
@@ -178,6 +187,9 @@ class MyePlayer(xbmc.Player):
                      self._last_pos, self._total_time, actual_percent)
         if actual_percent < self._min_percent:
             return
+
+        # In case it was deleted or whatever happened during playback
+        self._addShow()
 
         # Playback is finished, set the items to watched
         found = 32923
