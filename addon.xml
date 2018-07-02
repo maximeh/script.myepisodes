@@ -10,8 +10,8 @@
   </requires>
   <extension point="xbmc.service" library="default.py" start="login"/>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">MyEpisodes</summary>
-    <description lang="en">Automatically set watched episodes on MyEpisodes.com</description>
+    <summary lang="en_GB">MyEpisodes</summary>
+    <description lang="en_GB">Automatically set watched episodes on MyEpisodes.com</description>
     <platform>all</platform>
     <language>en fr it pt es</language>
     <forum></forum>
