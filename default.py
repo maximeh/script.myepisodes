@@ -70,7 +70,7 @@ class MyePlayer(xbmc.Player):
         self._min_percent = int(_addon.getSetting('watched-percent'))
         self._tracker = None
         self._playback_lock = threading.Event()
-        self._monitor = MyeMonitor(action=self._reset)
+        self.monitor = MyeMonitor(action=self._reset)
 
     def _reset(self):
         logger.debug('_reset called')
@@ -80,7 +80,7 @@ class MyePlayer(xbmc.Player):
         self.__init__()
 
     def _trackPosition(self):
-        while self._playback_lock.isSet() and not xbmc.abortRequested:
+        while self._playback_lock.isSet() and not self.monitor.abortRequested():
             try:
                 self._last_pos = self.getTime()
             except:
@@ -96,7 +96,6 @@ class MyePlayer(xbmc.Player):
     def tearDown(self):
         if hasattr(self, '_playback_lock'):
             self._playback_lock.clear()
-        self._monitor = None
         if not hasattr(self, '_tracker'):
             return
         if self._tracker is None:
@@ -205,8 +204,10 @@ if __name__ == "__main__":
     logger.debug("[%s] - Version: %s Started", _addon.getAddonInfo('name'),
                  _addon.getAddonInfo('version'))
 
-    while not xbmc.abortRequested:
-        xbmc.sleep(100)
+    while not player.monitor.abortRequested():
+        if player.monitor.waitForAbort(1):
+            # Abort was requested while waiting. We should exit
+            break
 
     player.tearDown()
     sys.exit(0)
