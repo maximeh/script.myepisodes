@@ -32,8 +32,8 @@ class MyeMonitor(xbmc.Monitor):
         self.action()
 
 def _initMyEpisodes():
-    username = _addon.getSetting('Username').decode('utf-8', 'replace')
-    password = _addon.getSetting('Password')
+    username = utils.getSetting('Username')
+    password = utils.getSetting('Password')
 
     login_notif = _language(32912)
     if not username or not password:
@@ -67,7 +67,7 @@ class MyePlayer(xbmc.Player):
         self.is_excluded = False
         self._total_time = sys.maxsize
         self._last_pos = 0
-        self._min_percent = int(_addon.getSetting('watched-percent'))
+        self._min_percent = utils.getSettingAsInt('watched-percent')
         self._tracker = None
         self._playback_lock = threading.Event()
         self.monitor = MyeMonitor(action=self._reset)
@@ -106,7 +106,7 @@ class MyePlayer(xbmc.Player):
 
     def _addShow(self):
 
-        if _addon.getSetting('auto-add') != "true":
+        if not utils.getSettingAsBool('auto-add'):
             logger.debug('Auto-add function disabled.')
             return
 
