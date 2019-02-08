@@ -14,6 +14,7 @@ import kodilogging
 from myepisodes import MyEpisodes
 
 _addon = xbmcaddon.Addon()
+_kodiversion = float(xbmcaddon.Addon('xbmc.addon').getAddonInfo('version')[0:4])
 _cwd = _addon.getAddonInfo('path')
 _language = _addon.getLocalizedString
 _resource_path = os.path.join(_cwd, 'resources', 'lib')
@@ -124,7 +125,15 @@ class MyePlayer(xbmc.Player):
             added = 32925
         utils.notif("%s %s" % (self.title, _language(added)))
 
+    # For backward compatibility
     def onPlayBackStarted(self):
+        if _kodiversion >= 17.9:
+            return
+        # This call is only for Krypton and below
+        self.onAVStarted()
+
+    # Only available in Leia (18) and up
+    def onAVStarted(self):
         self.setUp()
         self._total_time = self.getTotalTime()
         self._tracker.start()
