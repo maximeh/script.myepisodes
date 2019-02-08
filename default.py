@@ -216,7 +216,8 @@ if __name__ == "__main__":
     if not player.mye.is_logged:
         sys.exit(0)
 
-    logger.debug("[%s] - Version: %s Started", _addon.getAddonInfo('name'),
+    logger.debug("[%s] - Version: %s Started",
+                 _addon.getAddonInfo('name'),
                  _addon.getAddonInfo('version'))
 
     while not player.monitor.abortRequested():
