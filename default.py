@@ -181,9 +181,15 @@ class MyePlayer(xbmc.Player):
         if self.is_excluded:
             return
 
+        logger.debug('last_pos / total_time : %s / %s',
+                     self._last_pos, self._total_time)
+
         actual_percent = (self._last_pos/self._total_time)*100
         logger.debug('last_pos / total_time : %s / %s = %s %%',
                      self._last_pos, self._total_time, actual_percent)
+
+        logger.debug("min_percent: %s", self._min_percent)
+
         if actual_percent < self._min_percent:
             return
 
