@@ -6,28 +6,30 @@ from bs4 import BeautifulSoup
 
 # This is totally stolen from script.xbmc.subtitles plugin !
 REGEX_EXPRESSIONS = [
-    r'[Ss]([0-9]+)[][._-]*[Ee]([0-9]+)([^\\\\/]*)$',
-    r'[\._ \-]([0-9]+)x([0-9]+)([^\\/]*)',                # foo.1x09
-    r'[\._ \-]([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',     # foo.109
-    r'([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',
-    r'[\\\\/\\._ -]([0-9]+)([0-9][0-9])[^\\/]*',
-    r'Season ([0-9]+) - Episode ([0-9]+)[^\\/]*',         # Season 01 - Episode 02
-    r'Season ([0-9]+) Episode ([0-9]+)[^\\/]*',           # Season 01 Episode 02
-    r'[\\\\/\\._ -][0]*([0-9]+)x[0]*([0-9]+)[^\\/]*',
-    r'[[Ss]([0-9]+)\]_\[[Ee]([0-9]+)([^\\/]*)',           #foo_[s01]_[e01]
-    r'[\._ \-][Ss]([0-9]+)[\.\-]?[Ee]([0-9]+)([^\\/]*)',  #foo, s01e01, foo.s01.e01, foo.s01-e01
-    r's([0-9]+)ep([0-9]+)[^\\/]*',                        #foo - s01ep03, foo - s1ep03
-    r'[Ss]([0-9]+)[][ ._-]*[Ee]([0-9]+)([^\\\\/]*)$',
-    r'[\\\\/\\._ \\[\\(-]([0-9]+)x([0-9]+)([^\\\\/]*)$'
-    ]
+    r"[Ss]([0-9]+)[][._-]*[Ee]([0-9]+)([^\\\\/]*)$",
+    r"[\._ \-]([0-9]+)x([0-9]+)([^\\/]*)",  # foo.1x09
+    r"[\._ \-]([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)",  # foo.109
+    r"([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)",
+    r"[\\\\/\\._ -]([0-9]+)([0-9][0-9])[^\\/]*",
+    r"Season ([0-9]+) - Episode ([0-9]+)[^\\/]*",  # Season 01 - Episode 02
+    r"Season ([0-9]+) Episode ([0-9]+)[^\\/]*",  # Season 01 Episode 02
+    r"[\\\\/\\._ -][0]*([0-9]+)x[0]*([0-9]+)[^\\/]*",
+    r"[[Ss]([0-9]+)\]_\[[Ee]([0-9]+)([^\\/]*)",  # foo_[s01]_[e01]
+    r"[\._ \-][Ss]([0-9]+)[\.\-]?[Ee]([0-9]+)([^\\/]*)",  # foo, s01e01, foo.s01.e01, foo.s01-e01
+    r"s([0-9]+)ep([0-9]+)[^\\/]*",  # foo - s01ep03, foo - s1ep03
+    r"[Ss]([0-9]+)[][ ._-]*[Ee]([0-9]+)([^\\\\/]*)$",
+    r"[\\\\/\\._ \\[\\(-]([0-9]+)x([0-9]+)([^\\\\/]*)$",
+]
 
 MYEPISODE_URL = "https://www.myepisodes.com"
 MAX_LOGIN_ATTEMPTS = 3
 
+
 def sanitize(title, replace):
-    for char in ['[', ']', '_', '(', ')', '.', '-']:
+    for char in ["[", "]", "_", "(", ")", ".", "-"]:
         title = title.replace(char, replace)
     return title
+
 
 def logged(func):
     def wrapper(*args, **kwargs):
@@ -35,10 +37,11 @@ def logged(func):
         if not mye.is_logged:
             mye.login()
         return func(*args, **kwargs)
+
     return wrapper
 
-class MyEpisodes(object):
 
+class MyEpisodes(object):
     def __init__(self, userid, password):
         self.userid = userid
         self.password = password
@@ -56,16 +59,16 @@ class MyEpisodes(object):
     def login(self):
         login_attempts = MAX_LOGIN_ATTEMPTS
         login_data = {
-            'username' : self.userid,
-            'password' : self.password,
-            'action' : "Login",
-            'u': ""
+            "username": self.userid,
+            "password": self.password,
+            "action": "Login",
+            "u": "",
         }
 
         while login_attempts > 0 and not self.is_logged:
             data = self.req.post("%s/login/" % MYEPISODE_URL, data=login_data)
             # Quickly check if it seems we are logged on.
-            if self.userid.lower() in data.content.decode('utf8').strip().lower():
+            if self.userid.lower() in data.content.decode("utf8").strip().lower():
                 self.is_logged = True
                 return
             login_attempts -= 1
@@ -78,22 +81,22 @@ class MyEpisodes(object):
         data = self.req.get("%s/myshows/list/" % MYEPISODE_URL)
         if data is None:
             return False
-        soup = BeautifulSoup(data.content, 'html.parser')
+        soup = BeautifulSoup(data.content, "html.parser")
         mylist = soup.find("table", {"class": "mylist"})
         mylist_tr = mylist.findAll("tr")[1:]
 
         for row in mylist_tr:
             # Avoid shows marked as ignored
-            ignore_checkbox = row.find('input', {'type':'checkbox'})
-            if ignore_checkbox.get('checked') is not None:
+            ignore_checkbox = row.find("input", {"type": "checkbox"})
+            if ignore_checkbox.get("checked") is not None:
                 continue
 
-            link = row.find('a', {'href': True})
-            link_url = link.get('href')
-            showid = int(link_url.split('/')[2])
+            link = row.find("a", {"href": True})
+            link_url = link.get("href")
+            showid = int(link_url.split("/")[2])
 
             show_name = link.text.strip()
-            sanitized_show_name = sanitize(show_name, '')
+            sanitized_show_name = sanitize(show_name, "")
             if sanitized_show_name != show_name:
                 self.shows[sanitized_show_name.lower()] = showid
 
@@ -105,7 +108,7 @@ class MyEpisodes(object):
         if data is None:
             return None
 
-        soup = BeautifulSoup(data, 'html.parser')
+        soup = BeautifulSoup(data, "html.parser")
         show_href = None
         show_name = show_name.lower()
 
@@ -115,16 +118,16 @@ class MyEpisodes(object):
 
             link_text = link.string.lower()
             if self.title_is_filename:
-                link_text = sanitize(link_text, ' ')
+                link_text = sanitize(link_text, " ")
 
             if strict:
                 if link_text != show_name:
                     continue
-                show_href = link.get('href')
+                show_href = link.get("href")
                 break
 
             if link_text.startswith(show_name):
-                show_href = link.get('href')
+                show_href = link.get("href")
                 break
 
         return show_href
@@ -136,7 +139,9 @@ class MyEpisodes(object):
 
         self.populate_shows()
 
-        match_show = {k:v for k, v in list(self.shows.items()) if name in k or name.startswith(k)}
+        match_show = {
+            k: v for k, v in list(self.shows.items()) if name in k or name.startswith(k)
+        }
 
         if len(match_show) == 1:
             return list(match_show.values())[0]
@@ -153,16 +158,17 @@ class MyEpisodes(object):
         # It's not in our account yet ?
         # Try Find a show through its name and report its id
         search_data = {
-            'tvshow' : name,
-            'action' : 'Search',
-            }
+            "tvshow": name,
+            "action": "Search",
+        }
         data = self.req.post("%s/search/" % MYEPISODE_URL, data=search_data)
 
         show_href = self.find_show_link(data.content, name)
         if show_href is None:
             # Try to lookup the list of all the shows to find the exact title
-            data = self.req.post("%s/shows.php" % MYEPISODE_URL,
-                                 params={"list": name[0].upper()})
+            data = self.req.post(
+                "%s/shows.php" % MYEPISODE_URL, params={"list": name[0].upper()}
+            )
             show_href = self.find_show_link(data.content, name, strict=True)
 
         # Really did not find anything :'(
@@ -170,7 +176,7 @@ class MyEpisodes(object):
             return None
 
         try:
-            show_id = int(show_href.split('/')[2])
+            show_id = int(show_href.split("/")[2])
         except IndexError:
             return None
 
@@ -194,7 +200,7 @@ class MyEpisodes(object):
             else:
                 continue
             title = re.split(regex, file_name)[0]
-            title = sanitize(title, ' ')
+            title = sanitize(title, " ")
             title = title.strip()
             self.title_is_filename = True
             return title.title(), season, episode
@@ -209,12 +215,12 @@ class MyEpisodes(object):
 
     @logged
     def _add_del_show(self, show_id, mode="add"):
-        add_del_data = {
-            "action": mode,
-            "showid": show_id
-        }
-        data = self.req.post("%s/ajax/service.php" % MYEPISODE_URL,
-                             params={"mode": "show_manage"}, data=add_del_data)
+        add_del_data = {"action": mode, "showid": show_id}
+        data = self.req.post(
+            "%s/ajax/service.php" % MYEPISODE_URL,
+            params={"mode": "show_manage"},
+            data=add_del_data,
+        )
         if data is None:
             return False
 
@@ -227,10 +233,7 @@ class MyEpisodes(object):
         return self._set_episode_un_watched(show_id, season, episode)
 
     def set_episode_unwatched(self, show_id, season, episode):
-        return self._set_episode_un_watched(show_id,
-                                            season,
-                                            episode,
-                                            watched=False)
+        return self._set_episode_un_watched(show_id, season, episode, watched=False)
 
     @logged
     def _set_episode_un_watched(self, show_id, season, episode, watched=True):
@@ -239,8 +242,11 @@ class MyEpisodes(object):
         # because the backend of MyEpisodes is so smart that it doesn't
         # understand "True" but only "true"...
         un_watched_data = {key: str(watched).lower()}
-        data = self.req.post("%s/ajax/service.php" % MYEPISODE_URL,
-                             params={"mode": "eps_update"}, data=un_watched_data)
+        data = self.req.post(
+            "%s/ajax/service.php" % MYEPISODE_URL,
+            params={"mode": "eps_update"},
+            data=un_watched_data,
+        )
         if data.status_code != 200:
             return False
         return True
