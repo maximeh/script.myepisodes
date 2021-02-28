@@ -54,7 +54,7 @@ class MyEpisodes(object):
         self.req.close()
 
     def __repr__(self):
-        return "MyEpisodes('%s', '%s')" % (self.userid, self.password)
+        return f"MyEpisodes('{self.userid}', '{self.password}')"
 
     def login(self):
         login_attempts = MAX_LOGIN_ATTEMPTS
@@ -66,7 +66,7 @@ class MyEpisodes(object):
         }
 
         while login_attempts > 0 and not self.is_logged:
-            data = self.req.post("%s/login/" % MYEPISODE_URL, data=login_data)
+            data = self.req.post(f"{MYEPISODE_URL}/login/", data=login_data)
             # Quickly check if it seems we are logged on.
             if self.userid.lower() in data.content.decode("utf8").strip().lower():
                 self.is_logged = True
@@ -78,7 +78,7 @@ class MyEpisodes(object):
         self.shows.clear()
 
         # Populate shows with the list of show_ids in our account
-        data = self.req.get("%s/myshows/list/" % MYEPISODE_URL)
+        data = self.req.get(f"{MYEPISODE_URL}/myshows/list/")
         if data is None:
             return False
         soup = BeautifulSoup(data.content, "html.parser")
@@ -161,13 +161,13 @@ class MyEpisodes(object):
             "tvshow": name,
             "action": "Search",
         }
-        data = self.req.post("%s/search/" % MYEPISODE_URL, data=search_data)
+        data = self.req.post(f"{MYEPISODE_URL}/search/", data=search_data)
 
         show_href = self.find_show_link(data.content, name)
         if show_href is None:
             # Try to lookup the list of all the shows to find the exact title
             data = self.req.post(
-                "%s/shows.php" % MYEPISODE_URL, params={"list": name[0].upper()}
+                f"{MYEPISODE_URL}/shows.php", params={"list": name[0].upper()}
             )
             show_href = self.find_show_link(data.content, name, strict=True)
 
@@ -217,7 +217,7 @@ class MyEpisodes(object):
     def _add_del_show(self, show_id, mode="add"):
         add_del_data = {"action": mode, "showid": show_id}
         data = self.req.post(
-            "%s/ajax/service.php" % MYEPISODE_URL,
+            f"{MYEPISODE_URL}/ajax/service.php",
             params={"mode": "show_manage"},
             data=add_del_data,
         )
@@ -237,13 +237,13 @@ class MyEpisodes(object):
 
     @logged
     def _set_episode_un_watched(self, show_id, season, episode, watched=True):
-        key = "V%d-%d-%d" % (int(show_id), int(season), int(episode))
+        key = f"V{show_id}-{season}-{episode}"
         # If you are wondering why the lower and conversion to str, it's
         # because the backend of MyEpisodes is so smart that it doesn't
         # understand "True" but only "true"...
         un_watched_data = {key: str(watched).lower()}
         data = self.req.post(
-            "%s/ajax/service.php" % MYEPISODE_URL,
+            f"{MYEPISODE_URL}/ajax/service.php",
             params={"mode": "eps_update"},
             data=un_watched_data,
         )

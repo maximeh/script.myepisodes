@@ -26,11 +26,8 @@ class KodiLogHandler(logging.StreamHandler):
     def __init__(self):
         logging.StreamHandler.__init__(self)
         addon_id = xbmcaddon.Addon().getAddonInfo("id")
-        prefix = f"### [addon_id] - "
-        formatter = logging.Formatter(
-            prefix
-            + "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(name)s: %(message)s"
-        )
+        format = f"### [addon_id] - [%(filename)s:%(lineno)s - %(funcName)20s() ] %(name)s: %(message)s"
+        formatter = logging.Formatter(format)
         self.setFormatter(formatter)
 
     def emit(self, record):

@@ -47,7 +47,7 @@ def _initMyEpisodes():
     mye = MyEpisodes(username, password)
     mye.login()
     if mye.is_logged:
-        login_notif = "%s %s" % (username, _language(32911))
+        login_notif = f"{username} {_language(32911)}"
     utils.notif(login_notif, time=2500)
 
     if mye.is_logged and (not mye.populate_shows()):
@@ -88,9 +88,9 @@ class MyePlayer(xbmc.Player):
                 self._last_pos = self.getTime()
             except:
                 self._playback_lock.clear()
-            logger.debug("Tracker time = %f", self._last_pos)
+            logger.debug(f"Tracker time = {self._last_pos}")
             xbmc.sleep(250)
-        logger.debug("Tracker time (ended) = %f", self._last_pos)
+        logger.debug(f"Tracker time (ended) = {self._last_pos}")
 
     def setUp(self):
         self._playback_lock.set()
@@ -125,7 +125,7 @@ class MyePlayer(xbmc.Player):
         added = 32926
         if was_added:
             added = 32925
-        utils.notif("%s %s" % (self.title, _language(added)))
+        utils.notif(f"{self.title} {_language(added)}")
 
     # For backward compatibility
     def onPlayBackStarted(self):
@@ -152,19 +152,19 @@ class MyePlayer(xbmc.Player):
         # Try to find the title with the help of XBMC (Theses came from
         # XBMC.Subtitles add-ons)
         self.season = str(xbmc.getInfoLabel("VideoPlayer.Season"))
-        logger.debug("Player - Season: %s", self.season)
+        logger.debug("Player - Season: {self.season}")
         self.episode = str(xbmc.getInfoLabel("VideoPlayer.Episode"))
-        logger.debug("Player - Episode: %s", self.episode)
+        logger.debug("Player - Episode: {self.episode}")
         self.title = xbmc.getInfoLabel("VideoPlayer.TVshowtitle")
-        logger.debug("Player - TVShow: %s", self.title)
+        logger.debug("Player - TVShow: {self.title}")
         if self.title == "":
             filename = os.path.basename(filename_full_path)
-            logger.debug("Player - Filename: %s", filename)
+            logger.debug("Player - Filename: {filename}")
             self.title, self.season, self.episode = self.mye.get_info(filename)
-            logger.debug("Player - TVShow: %s", self.title)
+            logger.debug("Player - TVShow: {self.title}")
 
         logger.debug(
-            "Title: %s - Season: %s - Ep: %s", self.title, self.season, self.episode
+            f"Title: {self.title} - Season: {self.season} - Ep: {self.episode}"
         )
         if not self.season and not self.episode:
             # It's not a show. If it should be recognised as one. Send a bug.
@@ -173,15 +173,11 @@ class MyePlayer(xbmc.Player):
 
         self.showid = self.mye.find_show_id(self.title)
         if self.showid is None:
-            utils.notif("%s %s" % (self.title, _language(32923)), time=3000)
+            utils.notif(f"{self.title} {_language(32923)}", time=3000)
             self.tearDown()
             return
         logger.debug(
-            "Player - Found : %s - %d (S%s E%s)",
-            self.title,
-            self.showid,
-            self.season,
-            self.episode,
+            f"Player - Found : {self.title} - {self.showid} (S{self.season} E{self.episode}"
         )
 
         utils.notif(self.title, time=2000)
@@ -194,23 +190,18 @@ class MyePlayer(xbmc.Player):
     def onPlayBackEnded(self):
         self.tearDown()
 
-        logger.debug("onPlayBackEnded: is_exluded: %s", self.is_excluded)
+        logger.debug(f"onPlayBackEnded: is_exluded: {self.is_excluded}")
         if self.is_excluded:
             return
 
-        logger.debug(
-            "last_pos / total_time : %s / %s", self._last_pos, self._total_time
-        )
+        logger.debug(f"last_pos / total_time : {self._last_pos} / {self._total_time}")
 
         actual_percent = (self._last_pos / self._total_time) * 100
         logger.debug(
-            "last_pos / total_time : %s / %s = %s %%",
-            self._last_pos,
-            self._total_time,
-            actual_percent,
+            f"last_pos / total_time : {self._last_pos} / {self._total_time} = {actual_percent} %%",
         )
 
-        logger.debug("min_percent: %s", self._min_percent)
+        logger.debug(f"min_percent: {self._min_percent}")
 
         if actual_percent < self._min_percent:
             return
@@ -222,9 +213,7 @@ class MyePlayer(xbmc.Player):
         found = 32923
         if self.mye.set_episode_watched(self.showid, self.season, self.episode):
             found = 32924
-        utils.notif(
-            "{0.title} ({0.season} - {0.episode}) {1}".format(self, _language(found))
-        )
+        utils.notif(f"{self.title} ({self.season} - {self.episode}) {_language(found)}")
 
 
 if __name__ == "__main__":
@@ -233,9 +222,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     logger.debug(
-        "[%s] - Version: %s Started",
-        _addon.getAddonInfo("name"),
-        _addon.getAddonInfo("version"),
+        f"[{_addon.getAddonInfo('name')}] - Version: {_addon.getAddonInfo('version')} Started"
     )
 
     while not player.monitor.abortRequested():

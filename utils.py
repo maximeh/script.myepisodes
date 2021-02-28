@@ -29,32 +29,31 @@ def getSettingAsInt(setting):
 
 
 def notif(msg, time=5000):
-    logger.debug(f"notif with XBMC.Notification(MyEpisodes, {msg}, {time}, {_icon})")
     xbmc.executebuiltin(f"Notification(MyEpisodes, {msg}, {time}, {_icon})")
 
 
 def is_excluded(filename):
-    logger.debug("_is_excluded(): Check if '%s' is a URL.", filename)
+    logger.debug(f"_is_excluded(): Check if '{filename}' is a URL.")
     excluded_protocols = ["pvr://", "http://", "https://"]
     if any(protocol in filename for protocol in excluded_protocols):
-        logger.debug("_is_excluded(): '%s' is a URL; it's excluded.", filename)
+        logger.debug(f"_is_excluded(): '{filename}' is a URL; it's excluded.")
         return True
 
-    logger.debug("_is_excluded(): Check if '%s' is in an excluded path.", filename)
+    logger.debug(f"_is_excluded(): Check if '{filename}' is in an excluded path.")
 
     for index in range(1, 4):
         if index == 1:
             index = ""
-        exclude_option = getSettingAsBool("ExcludePathOption{}".format(index))
-        logger.debug("ExcludePathOption%s", index)
-        logger.debug("testing with %s", exclude_option)
+        exclude_option = getSettingAsBool(f"ExcludePathOption{index}")
+        logger.debug(f"ExcludePathOption{index}")
+        logger.debug(f"testing with {exclude_option}")
         if not exclude_option:
             continue
-        exclude_path = getSetting("ExcludePath{}".format(index))
-        logger.debug("testing with %s", exclude_path)
+        exclude_path = getSetting(f"ExcludePath{index}")
+        logger.debug(f"testing with {exclude_path}")
         if exclude_path == "":
             continue
         if exclude_path in filename:
-            logger.debug("_is_excluded(): Video is excluded (ExcludePath%s).", index)
+            logger.debug(f"_is_excluded(): Video is excluded (ExcludePath{index}).")
             return True
     return False
