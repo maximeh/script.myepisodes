@@ -40,7 +40,7 @@ def logged(func):
 class MyEpisodes(object):
 
     def __init__(self, userid, password):
-        self.userid = userid.encode('utf-8', 'replace')
+        self.userid = userid
         self.password = password
         self.req = requests.Session()
         self.title_is_filename = False
@@ -65,7 +65,7 @@ class MyEpisodes(object):
         while login_attempts > 0 and not self.is_logged:
             data = self.req.post("%s/login/" % MYEPISODE_URL, data=login_data)
             # Quickly check if it seems we are logged on.
-            if self.userid.lower() in data.content.lower():
+            if self.userid.lower() in data.content.decode('utf8').strip().lower():
                 self.is_logged = True
                 return
             login_attempts -= 1
@@ -136,14 +136,14 @@ class MyEpisodes(object):
 
         self.populate_shows()
 
-        match_show = {k:v for k, v in self.shows.items() if name in k or name.startswith(k)}
+        match_show = {k:v for k, v in list(self.shows.items()) if name in k or name.startswith(k)}
 
         if len(match_show) == 1:
             return list(match_show.values())[0]
 
         # We loop through a the dict of match possibilities and we search
         # strictly for the show name.
-        for key, value in match_show.items():
+        for key, value in list(match_show.items()):
             if key == name:
                 return value
 

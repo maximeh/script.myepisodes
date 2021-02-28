@@ -26,10 +26,10 @@ class TestMyEpisodes(unittest.TestCase):
 
     def test_03_populate_shows(self):
         self.mye.populate_shows()
-        results = {u'scandal': 8603,
-                   u'zbrodnia': 16034,
-                   u'mr. robot': 15082,
-                   u'mr robot': 15082}
+        results = {'scandal': 8603,
+                   'zbrodnia': 16034,
+                   'mr. robot': 15082,
+                   'mr robot': 15082}
         self.assertDictEqual(self.mye.shows, results)
 
     def test_04_find_show_id(self):
@@ -43,12 +43,12 @@ class TestMyEpisodes(unittest.TestCase):
 
     def test_05_add_show(self):
         self.mye.add_show(6585)
-        self.assertTrue('pretty little liars' in self.mye.shows.keys())
+        self.assertTrue('pretty little liars' in list(self.mye.shows.keys()))
         self.assertEqual(self.mye.shows['pretty little liars'], 6585)
 
     def test_06_del_show(self):
         self.mye.del_show(6585)
-        self.assertFalse('pretty little liars' in self.mye.shows.keys())
+        self.assertFalse('pretty little liars' in list(self.mye.shows.keys()))
 
     def test_07_set_episode_watched(self):
         ret = self.mye.set_episode_watched(15082, "1", "1")

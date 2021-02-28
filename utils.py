@@ -2,20 +2,21 @@
 
 import logging
 import xbmc
+import xbmcvfs
 import xbmcaddon
 
 logger = logging.getLogger(__name__)
 
 _addon = xbmcaddon.Addon()
 _icon_path = _addon.getAddonInfo("icon")
-_icon = xbmc.translatePath(_icon_path).decode('utf-8')
+_icon = xbmcvfs.translatePath(_icon_path)
 _scriptname = _addon.getAddonInfo('name')
 
 def getSettingAsBool(setting):
     return _addon.getSetting(setting).lower() == "true"
 
 def getSetting(setting):
-    return _addon.getSetting(setting).strip().decode('utf-8', 'replace')
+    return _addon.getSetting(setting).strip()
 
 def getSettingAsInt(setting):
     try:
@@ -24,9 +25,8 @@ def getSettingAsInt(setting):
         return 0
 
 def notif(msg, time=5000):
-    notif_msg = "%s, %s, %i, %s" % ('MyEpisodes', msg, time, _icon)
-    notif_msg = notif_msg.encode('utf-8', 'replace')
-    xbmc.executebuiltin("XBMC.Notification(%s)" % notif_msg)
+    logger.debug(f"notif with XBMC.Notification(MyEpisodes, {msg}, {time}, {_icon})")
+    xbmc.executebuiltin(f"Notification(MyEpisodes, {msg}, {time}, {_icon})")
 
 def is_excluded(filename):
     logger.debug("_is_excluded(): Check if '%s' is a URL.", filename)

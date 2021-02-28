@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+
 import logging
 
 import xbmc
@@ -27,8 +27,8 @@ class KodiLogHandler(logging.StreamHandler):
     def __init__(self):
         logging.StreamHandler.__init__(self)
         addon_id = xbmcaddon.Addon().getAddonInfo('id')
-        prefix = b"### [%s] - " % addon_id
-        formatter = logging.Formatter(prefix + b'[%(filename)s:%(lineno)s - %(funcName)20s() ] %(name)s: %(message)s')
+        prefix = f"### [addon_id] - "
+        formatter = logging.Formatter(prefix + '[%(filename)s:%(lineno)s - %(funcName)20s() ] %(name)s: %(message)s')
         self.setFormatter(formatter)
 
     def emit(self, record):
@@ -41,11 +41,7 @@ class KodiLogHandler(logging.StreamHandler):
             logging.NOTSET: xbmc.LOGNONE,
         }
 
-        try:
-            xbmc.log(self.format(record), levels[record.levelno])
-        except UnicodeEncodeError:
-            xbmc.log(self.format(record).encode('utf-8', 'ignore'),
-                     levels[record.levelno])
+        xbmc.log(self.format(record), levels[record.levelno])
 
     def flush(self):
         pass

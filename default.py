@@ -6,6 +6,7 @@ import threading
 import logging
 
 import xbmc
+import xbmcvfs
 import xbmcaddon
 
 import utils
@@ -18,7 +19,7 @@ _kodiversion = float(xbmcaddon.Addon('xbmc.addon').getAddonInfo('version')[0:4])
 _cwd = _addon.getAddonInfo('path')
 _language = _addon.getLocalizedString
 _resource_path = os.path.join(_cwd, 'resources', 'lib')
-_resource = xbmc.translatePath(_resource_path).decode('utf-8')
+_resource = xbmcvfs.translatePath(_resource_path)
 
 kodilogging.config()
 logger = logging.getLogger(__name__)
@@ -115,7 +116,7 @@ class MyePlayer(xbmc.Player):
         self.mye.populate_shows()
 
         # Add the show if it's not already in our account
-        if self.showid in self.mye.shows.values():
+        if self.showid in list(self.mye.shows.values()):
             logger.debug('Show is already in the account.')
             return
 
@@ -138,7 +139,7 @@ class MyePlayer(xbmc.Player):
         self._total_time = self.getTotalTime()
         self._tracker.start()
 
-        filename_full_path = self.getPlayingFile().decode('utf-8')
+        filename_full_path = self.getPlayingFile()
         # We don't want to take care of any URL because we can't really gain
         # information from it.
         self.is_excluded = False
