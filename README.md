@@ -49,7 +49,7 @@ download
 If you can't or don't want to build this plugin, look at the release tab.
 You can download the last plugin from there.
 
-[Download](https://github.com/maximeh/script.myepisodes/releases/download/3.0.0/script.myepisodes-3.0.0.zip?raw=true) the latests version.
+[Download](https://github.com/maximeh/script.myepisodes/releases/download/3.0.1/script.myepisodes-3.0.1.zip?raw=true) the latests version.
 
 known issues
 ============
