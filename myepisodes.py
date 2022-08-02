@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+from typing import final, TypeVar, Any, Callable, Optional, cast
+
 import re
 import requests
 from bs4 import BeautifulSoup
+
+SHOW_ID_ERR = -1
 
 # This is totally stolen from script.xbmc.subtitles plugin !
 REGEX_EXPRESSIONS = [
@@ -25,38 +30,42 @@ MYEPISODE_URL = "https://www.myepisodes.com"
 MAX_LOGIN_ATTEMPTS = 3
 
 
-def sanitize(title, replace):
+def sanitize(title: str, replace: str) -> str:
     for char in ["[", "]", "_", "(", ")", ".", "-"]:
         title = title.replace(char, replace)
     return title
 
 
-def logged(func):
-    def wrapper(*args, **kwargs):
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+def logged(func: F) -> F:
+    def wrapper(*args: MyEpisodes, **kwargs: str) -> F:
         mye = args[0]
         if not mye.is_logged:
             mye.login()
         return func(*args, **kwargs)
 
-    return wrapper
+    return cast(F, wrapper)
 
 
+@final
 class MyEpisodes(object):
-    def __init__(self, userid, password):
+    def __init__(self, userid: str, password: str) -> None:
         self.userid = userid
         self.password = password
         self.req = requests.Session()
         self.title_is_filename = False
         self.is_logged = False
-        self.shows = {}
+        self.shows: dict[str, int] = {}
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.req.close()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"MyEpisodes('{self.userid}', '{self.password}')"
 
-    def login(self):
+    def login(self) -> None:
         login_attempts = MAX_LOGIN_ATTEMPTS
         login_data = {
             "username": self.userid,
@@ -74,7 +83,7 @@ class MyEpisodes(object):
             login_attempts -= 1
 
     @logged
-    def populate_shows(self):
+    def populate_shows(self) -> bool:
         self.shows.clear()
 
         # Populate shows with the list of show_ids in our account
@@ -104,7 +113,9 @@ class MyEpisodes(object):
 
         return True
 
-    def find_show_link(self, data, show_name, strict=False):
+    def find_show_link(
+        self, data: bytes, show_name: str, strict: bool = False
+    ) -> Optional[str]:
         if data is None:
             return None
 
@@ -133,7 +144,7 @@ class MyEpisodes(object):
         return show_href
 
     @logged
-    def find_show_id(self, show_name):
+    def find_show_id(self, show_name: str) -> int:
         # Try to find the ID of the show in our account first
         name = show_name.lower()
 
@@ -173,30 +184,30 @@ class MyEpisodes(object):
 
         # Really did not find anything :'(
         if show_href is None:
-            return None
+            return SHOW_ID_ERR
 
         try:
             show_id = int(show_href.split("/")[2])
         except IndexError:
-            return None
+            return SHOW_ID_ERR
 
         if show_id is None:
-            return None
+            return SHOW_ID_ERR
 
         return show_id
 
     # This is totally stolen from script.xbmc.subtitles plugin !
-    def get_info(self, file_name):
-        title = None
-        episode = None
-        season = None
+    def get_info(self, file_name: str) -> tuple[str, int, int]:
+        title = ""
+        season = SHOW_ID_ERR
+        episode = SHOW_ID_ERR
         self.title_is_filename = False
 
         for regex in REGEX_EXPRESSIONS:
             response_file = re.findall(regex, file_name)
             if response_file:
-                season = response_file[0][0]
-                episode = response_file[0][1]
+                season = int(response_file[0][0])
+                episode = int(response_file[0][1])
             else:
                 continue
             title = re.split(regex, file_name)[0]
@@ -205,16 +216,16 @@ class MyEpisodes(object):
             self.title_is_filename = True
             return title.title(), season, episode
 
-        return None, None, None
+        return title, season, episode
 
-    def add_show(self, show_id):
+    def add_show(self, show_id: int) -> bool:
         return self._add_del_show(show_id)
 
-    def del_show(self, show_id):
+    def del_show(self, show_id: int) -> bool:
         return self._add_del_show(show_id, mode="del")
 
     @logged
-    def _add_del_show(self, show_id, mode="add"):
+    def _add_del_show(self, show_id: int, mode: str = "add") -> bool:
         add_del_data = {"action": mode, "showid": show_id}
         data = self.req.post(
             f"{MYEPISODE_URL}/ajax/service.php",
@@ -229,14 +240,16 @@ class MyEpisodes(object):
 
         return True
 
-    def set_episode_watched(self, show_id, season, episode):
+    def set_episode_watched(self, show_id: int, season: int, episode: int) -> bool:
         return self._set_episode_un_watched(show_id, season, episode)
 
-    def set_episode_unwatched(self, show_id, season, episode):
+    def set_episode_unwatched(self, show_id: int, season: int, episode: int) -> bool:
         return self._set_episode_un_watched(show_id, season, episode, watched=False)
 
     @logged
-    def _set_episode_un_watched(self, show_id, season, episode, watched=True):
+    def _set_episode_un_watched(
+        self, show_id: int, season: int, episode: int, watched: bool = True
+    ) -> bool:
         key = f"V{show_id}-{season}-{episode}"
         # If you are wondering why the lower and conversion to str, it's
         # because the backend of MyEpisodes is so smart that it doesn't
