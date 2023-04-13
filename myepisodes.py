@@ -5,6 +5,7 @@ from typing import final, TypeVar, Any, Callable, Optional, cast
 
 import re
 import requests
+from urllib3.util.retry import Retry
 from bs4 import BeautifulSoup
 
 SHOW_ID_ERR = -1
@@ -27,7 +28,7 @@ REGEX_EXPRESSIONS = [
 ]
 
 MYEPISODE_URL = "https://www.myepisodes.com"
-MAX_LOGIN_ATTEMPTS = 3
+MAX_RETRY_ATTEMPTS = 5
 
 
 def sanitize(title: str, replace: str) -> str:
@@ -49,12 +50,30 @@ def logged(func: F) -> F:
     return cast(F, wrapper)
 
 
+def retry_session(retries, backoff_factor=0.5):
+    session = requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        allowed_methods=None,
+        raise_on_status=False,
+        raise_on_redirect=False,
+    )
+
+    adapter = requests.adapters.HTTPAdapter(max_retries=retry)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
+
+
 @final
-class MyEpisodes(object):
+class MyEpisodes:
     def __init__(self, userid: str, password: str) -> None:
         self.userid = userid
         self.password = password
-        self.req = requests.Session()
+        self.req = retry_session(retries=MAX_RETRY_ATTEMPTS)
         self.title_is_filename = False
         self.is_logged = False
         self.shows: dict[str, int] = {}
@@ -66,7 +85,7 @@ class MyEpisodes(object):
         return f"MyEpisodes('{self.userid}', '{self.password}')"
 
     def login(self) -> None:
-        login_attempts = MAX_LOGIN_ATTEMPTS
+        login_attempts = MAX_RETRY_ATTEMPTS
         login_data = {
             "username": self.userid,
             "password": self.password,
