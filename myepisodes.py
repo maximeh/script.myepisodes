@@ -50,7 +50,7 @@ def logged(func: F) -> F:
     return cast(F, wrapper)
 
 
-def retry_session(retries, backoff_factor=0.5):
+def retry_session(retries: int, backoff_factor: float = 0.5) -> requests.Session:
     session = requests.Session()
     retry = Retry(
         total=retries,
