@@ -12,6 +12,7 @@
   <extension point="xbmc.addon.metadata">
     <summary lang="en_GB">MyEpisodes</summary>
     <description lang="en_GB">Automatically set watched episodes on MyEpisodes.com</description>
+    <description lang="sv_SE">Ställ in automatiskt att visade avsnitt sparas på MyEpisodes.com</description>
     <platform>all</platform>
     <website>https://www.myepisodes.com</website>
     <license>GPL-2.0-only</license>
