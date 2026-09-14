@@ -1,3 +1,12 @@
+4.0.0
++ Use the MyEpisodes JSON API instead of reading the website. The add-on now
+authenticates with an API key, because the API has no password login.
++ Upgrade without asking: an install that still holds a username and password
+trades them for an API key on the first start.
++ Require Kodi 20 or later.
++ Fix new installs marking an episode as watched after 2% of playback.
++ Fix the "Mark as watched from" setting, which listed compass points instead
+of percentages.
 3.2.1
 + Fix login and episode updates broken by the myepisodes.com redesign. Every
 POST now carries the site's CSRF token, and show ids are read from the new

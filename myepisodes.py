@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import annotations
-from typing import final, TypeVar, Any, Callable, Optional, cast
+from typing import final, TypeVar, Any, Callable, cast
 
+import logging
 import re
 import requests
 from urllib3.util.retry import Retry
-from bs4 import BeautifulSoup, Tag
+
+logger = logging.getLogger(__name__)
 
 SHOW_ID_ERR = -1
 
@@ -20,19 +22,23 @@ REGEX_EXPRESSIONS = [
     r"Season ([0-9]+) - Episode ([0-9]+)[^\\/]*",  # Season 01 - Episode 02
     r"Season ([0-9]+) Episode ([0-9]+)[^\\/]*",  # Season 01 Episode 02
     r"[\\\\/\\._ -][0]*([0-9]+)x[0]*([0-9]+)[^\\/]*",
-    r"[[Ss]([0-9]+)\]_\[[Ee]([0-9]+)([^\\/]*)",  # foo_[s01]_[e01]
+    r"\[[Ss]([0-9]+)\]_\[[Ee]([0-9]+)([^\\/]*)",  # foo_[s01]_[e01]
     r"[\._ \-][Ss]([0-9]+)[\.\-]?[Ee]([0-9]+)([^\\/]*)",  # foo, s01e01, foo.s01.e01, foo.s01-e01
     r"s([0-9]+)ep([0-9]+)[^\\/]*",  # foo - s01ep03, foo - s1ep03
     r"[Ss]([0-9]+)[][ ._-]*[Ee]([0-9]+)([^\\\\/]*)$",
     r"[\\\\/\\._ \\[\\(-]([0-9]+)x([0-9]+)([^\\\\/]*)$",
 ]
 
-MYEPISODE_URL = "https://www.myepisodes.com"
+API_URL = "https://api.myepisodes.com/v1"
 MAX_RETRY_ATTEMPTS = 5
 
-# Show links come in two shapes: /show/id-15082/ on the account pages and
-# /epsbyshow/15082/Name in search results.
-SHOW_LINK = re.compile(r"/(?:show|epsbyshow)/(?:id-)?([0-9]+)")
+# Lookups run on Kodi's playback callback, so a failing site must not hold that
+# thread. Two status retries with a 0.5 backoff cap one request at ~3 seconds.
+MAX_STATUS_RETRIES = 2
+
+# A list endpoint serves at most 1000 rows and refuses an offset past 10,000.
+PAGE_LIMIT = 1000
+MAX_OFFSET = 10000
 
 
 def sanitize(title: str, replace: str) -> str:
@@ -41,11 +47,39 @@ def sanitize(title: str, replace: str) -> str:
     return title
 
 
-def parse_show_id(href: str) -> Optional[int]:
-    match = SHOW_LINK.search(href)
-    if match is None:
-        return None
-    return int(match.group(1))
+def spellings(show_name: str) -> set[str]:
+    # A title lifted from a filename has lost its punctuation, so a show is
+    # matched under the name the catalogue holds and the flattened spellings
+    # a filename produces: "Mr. Robot", "Mr Robot", "S W A T".
+    lowered = show_name.lower()
+    forms = {
+        lowered,
+        sanitize(lowered, ""),
+        " ".join(sanitize(lowered, " ").split()),
+    }
+    # A name made only of punctuation flattens to "", which would then be a
+    # prefix of every lookup.
+    return {form for form in forms if form}
+
+
+def payload_of(response: requests.Response) -> dict[str, Any]:
+    """The decoded body, or {} when the server sent nothing usable."""
+    if response.status_code != 200:
+        return {}
+
+    try:
+        body = response.json()
+    except ValueError:
+        logger.debug("'%s' answered 200 with a body that is not JSON.", response.url)
+        return {}
+
+    if not isinstance(body, dict):
+        logger.debug(
+            "'%s' answered 200 with %s, not an object.", response.url, type(body)
+        )
+        return {}
+
+    return body
 
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -67,6 +101,10 @@ def retry_session(retries: int, backoff_factor: float = 0.5) -> requests.Session
         total=retries,
         read=retries,
         connect=retries,
+        status=MAX_STATUS_RETRIES,
+        # The API allows 10 requests a second and answers 429 with a
+        # Retry-After above that, which urllib3 honours on its own.
+        status_forcelist=[429, 500, 502, 503, 504],
         backoff_factor=backoff_factor,
         allowed_methods=None,
         raise_on_status=False,
@@ -81,196 +119,140 @@ def retry_session(retries: int, backoff_factor: float = 0.5) -> requests.Session
 
 @final
 class MyEpisodes:
-    def __init__(self, userid: str, password: str) -> None:
-        self.userid = userid
-        self.password = password
+    def __init__(self, api_key: str) -> None:
+        self.api_key = api_key
+        self.username = ""
         self.req = retry_session(retries=MAX_RETRY_ATTEMPTS)
-        self.title_is_filename = False
+        self.req.headers["Authorization"] = f"Bearer {api_key}"
         self.is_logged = False
         self.shows: dict[str, int] = {}
-        self.csrf_token: Optional[str] = None
 
     def __del__(self) -> None:
         self.req.close()
 
     def __repr__(self) -> str:
-        return f"MyEpisodes('{self.userid}', '{self.password}')"
-
-    def _fetch_csrf_token(self) -> Optional[str]:
-        # The site now guards every POST with a session-bound CSRF token,
-        # handed out as a hidden field on any page render. Grab it from the
-        # login page since that works whether or not we're logged in yet.
-        page = self.req.get(f"{MYEPISODE_URL}/login/")
-        soup = BeautifulSoup(page.content, "html.parser")
-        token_field = soup.find("input", {"name": "csrf_token"})
-        if not isinstance(token_field, Tag):
-            return None
-        value = token_field.get("value")
-        return value if isinstance(value, str) else None
-
-    def _post(
-        self,
-        url: str,
-        params: Optional[dict[str, str]] = None,
-        data: Optional[dict[str, Any]] = None,
-    ) -> requests.Response:
-        if self.csrf_token is None:
-            self.csrf_token = self._fetch_csrf_token()
-
-        post_data = {**(data or {}), "csrf_token": self.csrf_token}
-        response = self.req.post(url, params=params, data=post_data)
-        if response.status_code != 403:
-            return response
-
-        # A 403 on a token-bearing POST means our token went stale. Get a
-        # fresh one and try once more.
-        self.csrf_token = self._fetch_csrf_token()
-        post_data["csrf_token"] = self.csrf_token
-        return self.req.post(url, params=params, data=post_data)
+        # The key is a credential. Never let it reach a log line.
+        return "MyEpisodes(api_key='***')"
 
     def login(self) -> None:
-        login_attempts = MAX_RETRY_ATTEMPTS
-        login_data = {
-            "username": self.userid,
-            "password": self.password,
-            "action": "Login",
-            "u": "",
-        }
+        # A key opens no session. This confirms the key is accepted and picks
+        # up the account name for the welcome notification.
+        if not self.api_key:
+            return
 
-        while login_attempts > 0 and not self.is_logged:
-            data = self._post(f"{MYEPISODE_URL}/login/", data=login_data)
-            # Quickly check if it seems we are logged on.
-            if self.userid.lower() in data.content.decode("utf8").strip().lower():
-                self.is_logged = True
-                return
-            if self.csrf_token is None:
-                # Without a token no POST can succeed, so retrying only makes
-                # Kodi wait longer for the same failure.
-                return
-            login_attempts -= 1
+        payload = payload_of(self.req.get(f"{API_URL}/me"))
+        if not payload:
+            return
+
+        self.is_logged = True
+        self.username = payload.get("username", "")
+
+    def _remember(self, show_id: int, show_name: str) -> None:
+        for spelling in spellings(show_name):
+            self.shows[spelling] = show_id
 
     @logged
     def populate_shows(self) -> bool:
         self.shows.clear()
 
-        # Populate shows with the list of show_ids in our account
-        data = self.req.get(f"{MYEPISODE_URL}/myshows/list/")
-        if data is None:
-            return False
-        soup = BeautifulSoup(data.content, "html.parser")
-        mylist = soup.find("table", {"class": "mylist"})
-        mylist_tr = mylist.findAll("tr")[1:]
+        offset = 0
+        while offset <= MAX_OFFSET:
+            payload = payload_of(
+                self.req.get(
+                    f"{API_URL}/me/shows",
+                    params={
+                        "ignored": "0",
+                        "limit": str(PAGE_LIMIT),
+                        "offset": str(offset),
+                    },
+                )
+            )
+            if not payload:
+                return False
 
-        for row in mylist_tr:
-            # Avoid shows marked as ignored
-            ignore_checkbox = row.find("input", {"type": "checkbox"})
-            if ignore_checkbox.get("checked") is not None:
-                continue
+            rows = payload.get("data", [])
+            for show in rows:
+                self._remember(int(show["showid"]), show["showname"])
 
-            link = row.find("a", {"href": True})
-            showid = parse_show_id(link.get("href"))
-            if showid is None:
-                continue
-
-            show_name = link.text.strip()
-            sanitized_show_name = sanitize(show_name, "")
-            if sanitized_show_name != show_name:
-                self.shows[sanitized_show_name.lower()] = showid
-
-            self.shows[show_name.lower()] = showid
+            if not rows or not payload.get("meta", {}).get("has_more"):
+                break
+            # Page by what the server served, not by what we asked for.
+            offset += len(rows)
 
         return True
 
-    def find_show_link(
-        self, data: bytes, show_name: str, strict: bool = False
-    ) -> Optional[str]:
-        if data is None:
-            return None
-
-        soup = BeautifulSoup(data, "html.parser")
-        show_href = None
-        show_name = show_name.lower()
-
-        for link in soup.findAll("a", href=True):
-            if link.string is None:
-                continue
-
-            # Only shows are candidates; the page is full of navigation links
-            # whose text can start with the show name too.
-            if parse_show_id(link.get("href")) is None:
-                continue
-
-            link_text = link.string.lower()
-            if self.title_is_filename:
-                link_text = sanitize(link_text, " ")
-
-            if strict:
-                if link_text != show_name:
-                    continue
-                show_href = link.get("href")
-                break
-
-            if link_text.startswith(show_name):
-                show_href = link.get("href")
-                break
-
-        return show_href
-
     @logged
     def find_show_id(self, show_name: str) -> int:
-        # Try to find the ID of the show in our account first
-        name = show_name.lower()
+        # An empty term matches every show, so the first row would win.
+        name = show_name.strip().lower()
+        if not name:
+            return SHOW_ID_ERR
 
+        show_id = self._from_account(name)
+        if show_id != SHOW_ID_ERR:
+            return show_id
+
+        # A miss can only mean the account has changed under us, so this is
+        # the one place worth paying for a refresh.
         self.populate_shows()
-
-        match_show = {
-            k: v for k, v in list(self.shows.items()) if name in k or name.startswith(k)
-        }
-
-        if len(match_show) == 1:
-            return list(match_show.values())[0]
-
-        # We loop through a the dict of match possibilities and we search
-        # strictly for the show name.
-        for key, value in list(match_show.items()):
-            if key == name:
-                return value
+        show_id = self._from_account(name)
+        if show_id != SHOW_ID_ERR:
+            return show_id
 
         # You should really never fall there, at this point, the show should be
         # in your account, except if you disabled the auto add feature.
+        return self._search_catalogue(name)
 
-        # It's not in our account yet ?
-        # Try Find a show through its name and report its id
-        search_data = {
-            "tvshow": name,
-            "action": "Search",
+    def _from_account(self, name: str) -> int:
+        if name in self.shows:
+            return self.shows[name]
+
+        # A partial title still resolves as long as it points at one show.
+        matches = {
+            show: show_id
+            for show, show_id in self.shows.items()
+            if name in show or name.startswith(show)
         }
-        data = self._post(f"{MYEPISODE_URL}/search/", data=search_data)
+        if len(set(matches.values())) == 1:
+            return next(iter(matches.values()))
 
-        show_href = self.find_show_link(data.content, name)
-        if show_href is None:
-            # Try to lookup the list of all the shows to find the exact title
-            data = self._post(
-                f"{MYEPISODE_URL}/shows.php", params={"list": name[0].upper()}
-            )
-            show_href = self.find_show_link(data.content, name, strict=True)
+        return SHOW_ID_ERR
 
-        # Really did not find anything :'(
-        if show_href is None:
+    def _search_catalogue(self, name: str) -> int:
+        show_id = self._best_match(name, name)
+        if show_id != SHOW_ID_ERR:
+            return show_id
+
+        # The catalogue matches the search term literally, so a title taken
+        # from a filename ("Mr Robot") never reaches its punctuated entry
+        # ("Mr. Robot"). Search the longest word and match the rest here.
+        words = name.split()
+        if len(words) < 2:
             return SHOW_ID_ERR
 
-        show_id = parse_show_id(show_href)
-        if show_id is None:
-            return SHOW_ID_ERR
+        return self._best_match(max(words, key=len), name)
 
-        return show_id
+    def _best_match(self, term: str, name: str) -> int:
+        payload = payload_of(self.req.get(f"{API_URL}/shows", params={"search": term}))
+        results = payload.get("data", [])
+
+        # An exact name wins. A prefix match is the fallback, which is how the
+        # account lookup above resolves a partial title.
+        prefix_match = SHOW_ID_ERR
+        for show in results:
+            names = spellings(show["showname"])
+            if name in names:
+                return int(show["showid"])
+            if prefix_match == SHOW_ID_ERR and any(s.startswith(name) for s in names):
+                prefix_match = int(show["showid"])
+
+        return prefix_match
 
     # This is totally stolen from script.xbmc.subtitles plugin !
     def get_info(self, file_name: str) -> tuple[str, int, int]:
         title = ""
         season = SHOW_ID_ERR
         episode = SHOW_ID_ERR
-        self.title_is_filename = False
 
         for regex in REGEX_EXPRESSIONS:
             response_file = re.findall(regex, file_name)
@@ -282,31 +264,36 @@ class MyEpisodes:
             title = re.split(regex, file_name)[0]
             title = sanitize(title, " ")
             title = title.strip()
-            self.title_is_filename = True
             return title.title(), season, episode
 
         return title, season, episode
 
     def add_show(self, show_id: int) -> bool:
-        return self._add_del_show(show_id)
+        return self._follow(show_id)
 
     def del_show(self, show_id: int) -> bool:
-        return self._add_del_show(show_id, mode="del")
+        return self._unfollow(show_id)
 
     @logged
-    def _add_del_show(self, show_id: int, mode: str = "add") -> bool:
-        add_del_data = {"action": mode, "showid": show_id}
-        data = self._post(
-            f"{MYEPISODE_URL}/ajax/service.php",
-            params={"mode": "show_manage"},
-            data=add_del_data,
-        )
-        if data is None:
+    def _follow(self, show_id: int) -> bool:
+        # Idempotent: 201 the first time, 200 after, and an existing watched
+        # history is left alone.
+        response = self.req.put(f"{API_URL}/me/shows/{show_id}")
+        if response.status_code not in (200, 201):
             return False
 
-        # Update list
         self.populate_shows()
+        return True
 
+    @logged
+    def _unfollow(self, show_id: int) -> bool:
+        # Destructive: this drops every acquired and watched flag for the
+        # show, exactly as removing it on the site does.
+        response = self.req.delete(f"{API_URL}/me/shows/{show_id}")
+        if response.status_code != 200:
+            return False
+
+        self.populate_shows()
         return True
 
     def set_episode_watched(self, show_id: int, season: int, episode: int) -> bool:
@@ -319,16 +306,8 @@ class MyEpisodes:
     def _set_episode_un_watched(
         self, show_id: int, season: int, episode: int, watched: bool = True
     ) -> bool:
-        key = f"V{show_id}-{season}-{episode}"
-        # If you are wondering why the lower and conversion to str, it's
-        # because the backend of MyEpisodes is so smart that it doesn't
-        # understand "True" but only "true"...
-        un_watched_data = {key: str(watched).lower()}
-        data = self._post(
-            f"{MYEPISODE_URL}/ajax/service.php",
-            params={"mode": "eps_update"},
-            data=un_watched_data,
+        response = self.req.put(
+            f"{API_URL}/me/episodes/{show_id}/{season}/{episode}",
+            json={"watched": watched},
         )
-        if data.status_code != 200:
-            return False
-        return True
+        return response.status_code == 200

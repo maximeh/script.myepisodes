@@ -1,7 +1,7 @@
 # XBMC Media Center language file
 # Addon Name: MyEpisodes
 # Addon id: script.myepisodes
-# Addon version: 1.0.2
+# Addon version: 4.0.0
 # Addon Provider: Maxime Hadjinlian
 msgid ""
 msgstr ""
@@ -29,14 +29,6 @@ msgctxt "#32901"
 msgid "General Settings"
 msgstr "Impostazioni generali"
 
-msgctxt "#32902"
-msgid "Username"
-msgstr "Nome utente"
-
-msgctxt "#32903"
-msgid "Password"
-msgstr "Password"
-
 msgctxt "#32904"
 msgid "Mark as watched from"
 msgstr "Segnare come guardato da"
@@ -45,13 +37,41 @@ msgctxt "#32905"
 msgid "Automatically add shows"
 msgstr "Aggiungere programma automaticamente"
 
+msgctxt "#32908"
+msgid "API Key"
+msgstr ""
+
+msgctxt "#32909"
+msgid "Create a key at myepisodes.com, under Account then API Keys"
+msgstr ""
+
+msgctxt "#32910"
+msgid "MyEpisodes now needs an API key. Open the add-on settings."
+msgstr ""
+
 msgctxt "#32911"
 msgid "connected"
 msgstr "collegato"
 
 msgctxt "#32912"
-msgid "Authentification failed"
-msgstr "autenticazione non riuscita"
+msgid "Invalid or missing API key"
+msgstr ""
+
+msgctxt "#32913"
+msgid "Switched to an API key. Your stored password is no longer used."
+msgstr ""
+
+msgctxt "#32914"
+msgid "70%"
+msgstr ""
+
+msgctxt "#32915"
+msgid "80%"
+msgstr ""
+
+msgctxt "#32916"
+msgid "90%"
+msgstr ""
 
 msgctxt "#32923"
 msgid "not found."

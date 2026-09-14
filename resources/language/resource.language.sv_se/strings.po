@@ -1,7 +1,7 @@
 # XBMC Media Center Swedish language file
 # Addon Name: MyEpisodes
 # Addon id: script.myepisodes
-# Addon version: 1.0.2
+# Addon version: 4.0.0
 # Addon Provider: Maxime Hadjinlian
 msgid ""
 msgstr ""
@@ -30,14 +30,6 @@ msgctxt "#32901"
 msgid "General Settings"
 msgstr "Allmänna inställningar"
 
-msgctxt "#32902"
-msgid "Username"
-msgstr "Användarnamn"
-
-msgctxt "#32903"
-msgid "Password"
-msgstr "Lösenord"
-
 msgctxt "#32904"
 msgid "Mark as watched from"
 msgstr "Markera som sedd från"
@@ -54,16 +46,42 @@ msgctxt "#32907"
 msgid "Folder's path (including subfolders)"
 msgstr "Mappens sökväg (inklusive undermappar)"
 
-# empty strings from id 32907 to 32910
+msgctxt "#32908"
+msgid "API Key"
+msgstr ""
+
+msgctxt "#32909"
+msgid "Create a key at myepisodes.com, under Account then API Keys"
+msgstr ""
+
+msgctxt "#32910"
+msgid "MyEpisodes now needs an API key. Open the add-on settings."
+msgstr ""
 msgctxt "#32911"
 msgid "connected"
 msgstr "ansluten"
 
 msgctxt "#32912"
-msgid "Authentification failed"
-msgstr "Autentiseringen misslyckades"
+msgid "Invalid or missing API key"
+msgstr ""
 
-# empty strings from id 32913 to 32922
+msgctxt "#32913"
+msgid "Switched to an API key. Your stored password is no longer used."
+msgstr ""
+
+msgctxt "#32914"
+msgid "70%"
+msgstr ""
+
+msgctxt "#32915"
+msgid "80%"
+msgstr ""
+
+msgctxt "#32916"
+msgid "90%"
+msgstr ""
+
+# empty strings from id 32917 to 32922
 msgctxt "#32923"
 msgid "not found."
 msgstr "hittades inte."

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import xbmc
 import xbmcgui
 import xbmcvfs
 import xbmcaddon
@@ -15,22 +14,26 @@ _scriptname = _addon.getAddonInfo("name")
 
 
 def getSettingAsBool(setting: str) -> bool:
-    return _addon.getSetting(setting).lower() == "true"
+    return _addon.getSettings().getBool(setting)
 
 
 def getSetting(setting: str) -> str:
-    return _addon.getSetting(setting).strip()
+    return _addon.getSettings().getString(setting).strip()
 
 
 def getSettingAsInt(setting: str) -> int:
-    try:
-        return int(getSetting(setting))
-    except ValueError:
-        return 0
+    return _addon.getSettings().getInt(setting)
+
+
+def setSetting(setting: str, value: str) -> None:
+    # Not getSettings().setString(): on Kodi 20 that writes memory only, because
+    # CAddonSettings::Save() is a stub returning false there. Kodi 21 fixed it.
+    # Addon.setSetting goes through UpdateSetting + SaveSettings on both.
+    _addon.setSetting(setting, value)
 
 
 def notif(msg: str, time: int = 5000) -> None:
-    xbmcgui.Dialog().notification("MyEpisodes", msg, _icon, time)
+    xbmcgui.Dialog().notification(_scriptname, msg, _icon, time)
 
 
 def is_excluded(filename: str) -> bool:
