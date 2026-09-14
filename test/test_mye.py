@@ -5,6 +5,22 @@ USERNAME = "test1337"
 PASSWORD = "test1234"
 
 
+class TestParseShowId(unittest.TestCase):
+    def test_account_page_link(self) -> None:
+        self.assertEqual(myepisodes.parse_show_id("/show/id-15082/"), 15082)
+
+    def test_search_result_link(self) -> None:
+        self.assertEqual(
+            myepisodes.parse_show_id("/epsbyshow/26742/A Very British Scandal"), 26742
+        )
+
+    def test_ignores_links_that_are_not_shows(self) -> None:
+        # Both pages we scrape are full of these.
+        self.assertIsNone(myepisodes.parse_show_id("/shows/A"))
+        self.assertIsNone(myepisodes.parse_show_id("/account/controlpanel/"))
+        self.assertIsNone(myepisodes.parse_show_id("/logout/"))
+
+
 class TestMyEpisodes(unittest.TestCase):
     mye = myepisodes.MyEpisodes(USERNAME, PASSWORD)
 
