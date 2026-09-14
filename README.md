@@ -1,7 +1,7 @@
 script.myepisodes
 =================
 
-Kodi plugin for [MyEpisodes](http://myepisodes.com)
+Kodi plugin for [MyEpisodes](https://www.myepisodes.com)
 
 This plugin will set TV shows episodes you've seen as watched on MyEpisodes.
 It will also add the the TV show to your account if it was not already there.
@@ -49,7 +49,8 @@ download
 If you can't or don't want to build this plugin, look at the release tab.
 You can download the last plugin from there.
 
-[Download](https://github.com/maximeh/script.myepisodes/releases/download/3.2.0/script.myepisodes-3.2.0.zip?raw=true) the latests version.
+[Download the latest release](https://github.com/maximeh/script.myepisodes/releases/latest)
+and pick the `script.myepisodes-<version>.zip` asset.
 
 known issues
 ============
