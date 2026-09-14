@@ -9,6 +9,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+*.zip
 .Python
 env/
 bin/
@@ -31,6 +32,8 @@ pip-delete-this-directory.txt
 
 # Unit test / coverage reports
 .tox/
+.mypy_cache/
+.pytest_cache/
 .coverage
 .cache
 nosetests.xml
@@ -54,3 +57,6 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+
+# macOS
+.DS_Store
